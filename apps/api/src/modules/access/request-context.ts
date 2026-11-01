@@ -12,6 +12,9 @@ export interface AuthContext {
   isSuperAdmin: boolean;
   permissions: ReadonlySet<string>;
   setupComplete: boolean;
+  /** Location scoping inputs (see scoped.ts) */
+  restrictedLocationIds: readonly string[];
+  assignmentLocationIds: readonly (string | null)[];
 }
 
 export type AuthenticatedRequest = Request & { auth?: AuthContext; requestId?: string };

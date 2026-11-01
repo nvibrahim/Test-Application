@@ -13,5 +13,26 @@ export const retentionCleanup: MaintenanceTask = async ({ prisma, now }) => {
     }),
     prisma.stepUpGrant.deleteMany({ where: { expiresAt: { lt: days(1) } } }),
   ]);
-  return `Removed ${attempts.count} sign-in attempts, ${sessions.count} sessions, ${resets.count} reset tokens, ${grants.count} step-up grants`;
+  // An invitation that expired un-accepted: the invited user row goes too, so the email can be reused.
+  const stale = await prisma.user.findMany({
+    where: {
+      status: 'invited',
+      invitations: { every: { OR: [{ expiresAt: { lt: now } }, { revokedAt: { not: null } }] } },
+      createdAt: { lt: new Date(now.getTime() - 72 * 3_600_000) },
+    },
+    select: { id: true, organizationId: true, email: true },
+  });
+  for (const u of stale) {
+    await prisma.user.delete({ where: { id: u.id } });
+    await prisma.auditLog.create({
+      data: {
+        organizationId: u.organizationId,
+        action: 'users.invitation.expired',
+        entityType: 'user',
+        entityId: u.id,
+        changes: { email: u.email },
+      },
+    });
+  }
+  return `Removed ${attempts.count} sign-in attempts, ${sessions.count} sessions, ${resets.count} reset tokens, ${grants.count} step-up grants, ${stale.length} expired invitations`;
 };

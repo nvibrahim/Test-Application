@@ -8,6 +8,7 @@ export const ACCESS_RULE = 'inspower:access-rule';
 export const ALLOW_DURING_SETUP = 'inspower:allow-during-setup';
 export const SKIP_CSRF = 'inspower:skip-csrf';
 export const REQUIRE_STEP_UP = 'inspower:require-step-up';
+export const REQUIRE_FEATURE = 'inspower:require-feature';
 
 export type AccessRule =
   | { kind: 'public' }
@@ -38,3 +39,6 @@ export const SkipCsrf = () => SetMetadata(SKIP_CSRF, true);
 
 /** A sensitive action: the person must have proved it is them within the last few minutes (POST /auth/step-up). */
 export const RequireStepUp = () => SetMetadata(REQUIRE_STEP_UP, true);
+
+/** The route exists only while one of these feature switches is on for the person (404 otherwise). */
+export const RequireFeature = (...keys: string[]) => SetMetadata(REQUIRE_FEATURE, keys);

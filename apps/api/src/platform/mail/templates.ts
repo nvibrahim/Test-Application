@@ -33,6 +33,22 @@ export type EmailTemplate =
       name: 'two-factor-reminder';
       params: { appName: string; fullName: string; link: string; day: number };
     }
+  | {
+      name: 'invitation';
+      params: {
+        appName: string;
+        fullName: string;
+        inviterName: string;
+        organizationName: string;
+        link: string;
+        hours: number;
+      };
+    }
+  | { name: 'account-disabled'; params: { appName: string; fullName: string } }
+  | {
+      name: 'email-change';
+      params: { appName: string; fullName: string; link: string; minutes: number };
+    }
   | { name: 'test'; params: { appName: string } };
 
 export type EmailTemplateName = EmailTemplate['name'];
@@ -181,6 +197,50 @@ export function renderEmail(template: EmailTemplate): RenderedEmail {
             `Your account has been open for ${day} day${day === 1 ? '' : 's'} without two-step verification. It takes two minutes with an authenticator app on your phone.`,
           ],
           { text: 'Set up two-step verification', link },
+        ),
+      };
+    }
+    case 'invitation': {
+      const { appName, fullName, inviterName, organizationName, link, hours } = template.params;
+      return {
+        subject: `${inviterName} invited you to ${organizationName} on ${appName}`,
+        text: `Hello ${fullName},\n\n${inviterName} has invited you to join ${organizationName} on ${appName}. Choose your password with this link; it works once and expires in ${hours} hours:\n${link}\n\nIf you were not expecting this, ignore this email.`,
+        html: layout(
+          appName,
+          `You are invited to ${organizationName}`,
+          [
+            `Hello ${escapeHtml(fullName)},`,
+            `${escapeHtml(inviterName)} has invited you to join ${escapeHtml(organizationName)} on ${escapeHtml(appName)}. Choose your password with the button below; the link works once and expires in ${hours} hours.`,
+          ],
+          { text: 'Choose my password', link },
+        ),
+      };
+    }
+    case 'account-disabled': {
+      const { appName, fullName } = template.params;
+      return {
+        subject: `Your ${appName} account was disabled`,
+        text: `Hello ${fullName},\n\nAn administrator disabled your ${appName} account and you were signed out everywhere. If you think this is a mistake, speak to your administrator.`,
+        html: layout(appName, 'Your account was disabled', [
+          `Hello ${escapeHtml(fullName)},`,
+          `An administrator disabled your ${escapeHtml(appName)} account and you were signed out everywhere. If you think this is a mistake, speak to your administrator.`,
+        ]),
+      };
+    }
+    case 'email-change': {
+      const { appName, fullName, link, minutes } = template.params;
+      return {
+        subject: `Confirm your new email for ${appName}`,
+        text: `Hello ${fullName},\n\nConfirm that this is your new email address for ${appName}. The link works once and expires in ${minutes} minutes:\n${link}\n\nIf you did not ask for this, ignore this email; nothing changes.`,
+        html: layout(
+          appName,
+          'Confirm your new email',
+          [
+            `Hello ${escapeHtml(fullName)},`,
+            `Confirm that this is your new email address for ${escapeHtml(appName)}. The link works once and expires in ${minutes} minutes.`,
+            'If you did not ask for this, ignore this email; nothing changes.',
+          ],
+          { text: 'Confirm my email', link },
         ),
       };
     }

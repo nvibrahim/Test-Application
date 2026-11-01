@@ -21,6 +21,8 @@ export const errorCodes = [
   'token_invalid',
   'invalid_code',
   'two_factor_not_set_up',
+  'last_super_admin',
+  'reserved_permission',
 ] as const;
 
 export type ErrorCode = (typeof errorCodes)[number];
@@ -54,4 +56,6 @@ export const httpStatusFor: Record<ErrorCode, number> = {
   token_invalid: 400,
   invalid_code: 401,
   two_factor_not_set_up: 409,
+  last_super_admin: 409,
+  reserved_permission: 403,
 };

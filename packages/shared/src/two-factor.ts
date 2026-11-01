@@ -104,7 +104,3 @@ export const userListSchema = z.object({
   users: z.array(userListItemSchema),
   total: z.number().int(),
 });
-export const userListQuerySchema = z.object({
-  twoFactor: z.enum(['all', 'on', 'off']).default('all'),
-  q: z.string().trim().max(100).optional(),
-});

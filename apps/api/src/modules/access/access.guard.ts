@@ -7,10 +7,12 @@ import { CsrfService } from '../auth/csrf.service';
 import {
   ACCESS_RULE,
   ALLOW_DURING_SETUP,
+  REQUIRE_FEATURE,
   REQUIRE_STEP_UP,
   SKIP_CSRF,
   type AccessRule,
 } from './decorators';
+import { FeaturesService } from './features.service';
 import { StepUpService } from '../two-factor/step-up.service';
 import type { AuthenticatedRequest } from './request-context';
 
@@ -27,6 +29,7 @@ export class AccessGuard implements CanActivate {
     private readonly sessions: SessionsService,
     private readonly csrf: CsrfService,
     private readonly stepUp: StepUpService,
+    private readonly features: FeaturesService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -69,6 +72,14 @@ export class AccessGuard implements CanActivate {
     } else if (rule.kind === 'any-permission') {
       if (!auth.isSuperAdmin && !rule.any.some((p) => auth.permissions.has(p))) throw forbidden();
     }
+    const features = this.reflector.getAllAndOverride<string[] | undefined>(REQUIRE_FEATURE, [
+      handler,
+      cls,
+    ]);
+    if (features?.length && !(await this.features.anyAvailable(features, auth))) {
+      throw new ApiException('not_found', 'Not found');
+    }
+
     const needsStepUp =
       this.reflector.getAllAndOverride<boolean>(REQUIRE_STEP_UP, [handler, cls]) === true;
     if (needsStepUp && !(await this.stepUp.hasGrant(auth.sessionId))) {

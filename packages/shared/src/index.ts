@@ -9,3 +9,4 @@ export * from './settings/security.js';
 export * from './auth.js';
 export * from './two-factor.js';
 export * from './scheduler.js';
+export * from './access.js';

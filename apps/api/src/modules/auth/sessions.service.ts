@@ -165,9 +165,11 @@ export class SessionsService {
         status: true,
         roles: {
           select: {
+            locationId: true,
             role: { select: { key: true, permissions: { select: { permissionKey: true } } } },
           },
         },
+        locations: { select: { locationId: true } },
       },
     });
     if (!user || user.status !== 'active') {
@@ -210,6 +212,8 @@ export class SessionsService {
       isSuperAdmin,
       permissions,
       setupComplete,
+      restrictedLocationIds: user.locations.map((l) => l.locationId),
+      assignmentLocationIds: user.roles.map((r) => r.locationId),
     };
   }
 
@@ -289,6 +293,17 @@ export class SessionsService {
       rows.map((r) => this.redis.client.del(this.cacheKey(r.tokenHash)).catch(() => undefined)),
     );
     return rows.length;
+  }
+
+  /** After a role, location or email change: live sessions re-read the user on their next request. */
+  async dropCacheForUser(userId: string): Promise<void> {
+    const rows = await this.prisma.session.findMany({
+      where: { userId, revokedAt: null },
+      select: { tokenHash: true },
+    });
+    await Promise.all(
+      rows.map((r) => this.redis.client.del(this.cacheKey(r.tokenHash)).catch(() => undefined)),
+    );
   }
 
   async listForUser(userId: string, currentSessionId: string) {

@@ -1,10 +1,15 @@
 import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
-import { permissionRegistry, permissionRenames, SUPER_ADMIN_ROLE_KEY } from '@inspower/shared';
+import {
+  builtInRoles,
+  permissionRegistry,
+  permissionRenames,
+  SUPER_ADMIN_ROLE_KEY,
+} from '@inspower/shared';
 import { PrismaService, type Tx } from '../../platform/database/prisma.service';
 import { LOGGER } from '../../platform/logging/logging.module';
 import type { Logger } from '../../platform/logging/logger';
 
-/** Writes the permission registry to the database and makes sure the Super Admin role exists. */
+/** Writes the permission registry to the database and makes sure the built-in roles exist. */
 @Injectable()
 export class AccessSync implements OnModuleInit {
   constructor(
@@ -44,21 +49,54 @@ export async function syncAccessControl(tx: Tx): Promise<void> {
       },
     });
   }
+  // A permission that left the registry disappears from every role.
+  await tx.rolePermission.deleteMany({
+    where: { permissionKey: { notIn: permissionRegistry.map((p) => p.key) } },
+  });
+  await tx.permission.deleteMany({
+    where: { key: { notIn: permissionRegistry.map((p) => p.key) } },
+  });
   const organizations = await tx.organization.findMany({ select: { id: true } });
-  for (const org of organizations) await ensureSuperAdminRole(tx, org.id);
+  for (const org of organizations) await ensureBuiltInRoles(tx, org.id);
+}
+
+/** Built-in roles exist for every organization; a built-in role's default permissions are written only when it is first created. */
+export async function ensureBuiltInRoles(tx: Tx, organizationId: string): Promise<void> {
+  for (const def of builtInRoles) {
+    const existing = await tx.role.findUnique({
+      where: { organizationId_key: { organizationId, key: def.key } },
+    });
+    if (existing) {
+      if (!existing.isSystem)
+        await tx.role.update({ where: { id: existing.id }, data: { isSystem: true } });
+      continue;
+    }
+    const role = await tx.role.create({
+      data: {
+        organizationId,
+        key: def.key,
+        name: def.name,
+        description: def.description,
+        isSystem: true,
+      },
+    });
+    if (def.permissions !== '*') {
+      await tx.rolePermission.createMany({
+        data: def.permissions.map((permissionKey) => ({
+          roleId: role.id,
+          permissionKey,
+          organizationId,
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }
 }
 
 export async function ensureSuperAdminRole(tx: Tx, organizationId: string): Promise<string> {
-  const role = await tx.role.upsert({
+  await ensureBuiltInRoles(tx, organizationId);
+  const role = await tx.role.findUniqueOrThrow({
     where: { organizationId_key: { organizationId, key: SUPER_ADMIN_ROLE_KEY } },
-    update: { isSystem: true },
-    create: {
-      organizationId,
-      key: SUPER_ADMIN_ROLE_KEY,
-      name: 'Super Admin',
-      description: 'Every permission, now and in the future. Cannot be edited.',
-      isSystem: true,
-    },
   });
   return role.id;
 }
