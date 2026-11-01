@@ -1,0 +1,57 @@
+name: Release image
+
+# Every push to main builds the image and publishes it as ghcr.io/<owner>/inspower:YYYY.MM.DD-<sha>
+# (plus `latest`). Releasing to clients is a deliberate step on the operations host:
+#   pnpm inspower release <version> --all
+# See docs/runbooks/release-and-rollback.md.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  image:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Version
+        id: version
+        run: |
+          echo "value=$(date -u +%Y.%m.%d)-$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/inspower" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.version.outputs.image }}:${{ steps.version.outputs.value }}
+            ${{ steps.version.outputs.image }}:latest
+          build-args: VERSION=${{ steps.version.outputs.value }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test
+        run: |
+          docker run --rm ${{ steps.version.outputs.image }}:${{ steps.version.outputs.value }} cli version
+      - name: Summary
+        run: |
+          echo "Published ${{ steps.version.outputs.image }}:${{ steps.version.outputs.value }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "pnpm inspower release ${{ steps.version.outputs.value }} --all --image ${{ steps.version.outputs.image }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

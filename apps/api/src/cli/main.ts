@@ -1,17 +1,18 @@
 import 'reflect-metadata';
 import { loadDotEnv } from '../platform/config/dotenv';
 loadDotEnv();
-import { randomBytes } from 'node:crypto';
 import { loadEnv, InvalidEnvironmentError } from '../platform/config/config';
 import { createPrismaClient } from '../platform/database/prisma.service';
 import { adminCommand } from './admin';
 import { backupCommand } from './backup';
+import { keysCommand } from './keys';
+import { clientCommand, releaseCommand } from './release';
+import { maintenanceCommand } from './maintenance';
 
 /**
  * `pnpm inspower <command>`: the cross-platform command line that replaces scripts.
- * Phase 0 commands: `keys generate`, `db check`, `version`. Phase 1 adds `admin create`
- * and `admin recover`; Phase 6 adds `backup run|restore|verify`; Phase 7 the client and
- * release commands.
+ * Commands: `version`, `db check`, `keys generate|rotate`, `admin create|recover`,
+ * `backup run|list|verify|prune|restore`, `maintenance on|off`, `release`, `client`.
  */
 const commands: Record<string, (args: string[]) => Promise<number>> = {
   admin(args) {
@@ -27,14 +28,20 @@ const commands: Record<string, (args: string[]) => Promise<number>> = {
     return 0;
   },
 
-  async keys(args) {
-    if (args[0] !== 'generate') {
-      console.error('Usage: inspower keys generate');
-      return 2;
-    }
-    console.log(`AUTH_ENCRYPTION_KEY=${randomBytes(32).toString('base64')}`);
-    console.log(`BACKUP_ENCRYPTION_KEY=${randomBytes(32).toString('base64')}`);
-    return 0;
+  keys(args) {
+    return keysCommand(args[0] === 'rotate' ? loadEnv() : null, args);
+  },
+
+  release(args) {
+    return releaseCommand(args);
+  },
+
+  client(args) {
+    return clientCommand(args);
+  },
+
+  maintenance(args) {
+    return maintenanceCommand(loadEnv(), args);
   },
 
   async db(args) {

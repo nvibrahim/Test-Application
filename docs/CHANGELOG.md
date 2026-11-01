@@ -2,6 +2,45 @@
 
 Each phase ends with an entry here. Dates are the day the phase was finished.
 
+## Phase 7: Operations (1 November 2026)
+
+### Added
+
+- Administration → Jobs: live counts per queue (waiting, running, delayed, completed, failed,
+  paused), the run history from `job_runs` (the worker writes a row for every job it picks up,
+  with a redacted input summary and the result or error), Retry, Cancel and Remove, each audited.
+  Bull Board, the queue inspector, at `/api/v1/admin/queues` behind the session cookie and
+  `jobs.manage`; anyone else gets 404.
+- Scheduled jobs tab: the shared registry joined with its row and the live scheduler (cron,
+  time zone, last run, last result or error, next run). Pause removes the scheduler, Resume puts
+  it back, Run now queues one run even while paused; a paused job that fires anyway is skipped.
+  Catch-up: on start the worker runs once any catch-up job whose recorded next run passed while
+  it was off.
+- Administration → Audit log: filters by action (exact or prefix such as `users.`), entity
+  type, entity id, actor and date range; cursor paging; a details drawer with before and after;
+  CSV export (`audit.export`, step-up) streamed newest first up to 50 000 rows, RFC 4180 quoting,
+  formula-looking cells neutralised, and the export itself written to the log.
+- Feature switches: a registry in the shared package (`design_system`, `exports`), the
+  Administration → Feature switches screen (off, on, Super Admin only, selected people; step-up;
+  audited with before and after), `GET /features/mine` for pages, and the design-system page
+  now sits behind its switch (off by default, so hidden from everyone until turned on).
+- Command line, in TypeScript so it runs from any OS: `inspower release <version> [--client
+slug | --all] [--dry-run]` (pull, pre-release backup, migrate, restart, health check; rollback
+  to the previous version on failure; demo first with `--all`), `inspower client new | deploy-all
+| hold | rollback | status`, `inspower maintenance on|off`, and `inspower keys rotate --new
+<key> [--dry-run]` which re-seals two-factor secrets, secret settings and off-site target
+  credentials under a new `AUTH_ENCRYPTION_KEY` in one transaction.
+- `.github/workflows/release.yml`: every push to `main` publishes
+  `ghcr.io/<owner>/inspower:YYYY.MM.DD-<sha>` and `latest`, smoke-tests the image and prints the
+  release command.
+- Runbooks: release and rollback, key rotation, incident. The release plan's order (backup before
+  migrate before restart before health, rollback steps) is unit tested.
+
+### Changed
+
+- Scheduled job and feature switch rows are keyed globally (one organization per database), so
+  a database reset in tests or a reinstall never leaves a stale row from another organization id.
+
 ## Phase 6: Backup and restore (1 November 2026)
 
 Built to `docs/runbooks/backup-and-restore.md`, which was written first and rehearsed last.

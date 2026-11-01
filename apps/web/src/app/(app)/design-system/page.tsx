@@ -15,21 +15,22 @@ import { Field } from '@inspower/ui/components/field';
 import { Input } from '@inspower/ui/components/input';
 import { Select } from '@inspower/ui/components/select';
 import { Skeleton } from '@inspower/ui/components/skeleton';
-import { requireSession } from '@/lib/session';
+import { myFeaturesSchema } from '@inspower/shared';
+import { apiServer } from '@/lib/api';
+import { cookieHeader, requireSession } from '@/lib/session';
 import { Page } from '@/shell/page';
 
 export const metadata: Metadata = { title: 'Design system' };
 export const dynamic = 'force-dynamic';
 
-/** Every component in every state, in both themes. Administrators only in production. */
+/** Every component in every state, in both themes. Behind the `design_system` feature switch. */
 export default async function DesignSystemPage() {
   const session = await requireSession();
-  if (
-    process.env.NODE_ENV === 'production' &&
-    !session.user.isSuperAdmin &&
-    !session.user.permissions.includes('settings.manage')
-  )
-    redirect('/dashboard');
+  const cookie = await cookieHeader();
+  const mine = await apiServer('/features/mine', myFeaturesSchema, { cookie }).catch(() => ({
+    features: [] as string[],
+  }));
+  if (!mine.features.includes('design_system')) redirect('/dashboard');
   const tokens = [
     'background',
     'foreground',

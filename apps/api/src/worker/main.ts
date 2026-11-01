@@ -14,6 +14,7 @@ import { OUTBOX_CHANNEL } from '../platform/outbox/outbox';
 import { createRedis } from '../platform/redis/redis.service';
 import { backupProcessor } from './backup.processor';
 import { emailProcessor } from './email.processor';
+import { recordJobRuns } from './job-runs';
 import { maintenanceProcessor, registerSchedules } from './scheduler';
 
 export const QUEUES = ['email', 'maintenance', 'backup', 'exports'] as const;
@@ -85,18 +86,22 @@ async function main(): Promise<void> {
   );
   const sendEmail = emailProcessor(env, prisma, logger);
   const emailQueue = new Queue('email', { connection, prefix: `${env.REDIS_PREFIX}:bull` });
-  const runMaintenance = maintenanceProcessor(env, prisma, emailQueue, logger);
+  const maintenanceQueue = new Queue('maintenance', {
+    connection,
+    prefix: `${env.REDIS_PREFIX}:bull`,
+  });
+  const runMaintenance = maintenanceProcessor(env, prisma, emailQueue, maintenanceQueue, logger);
   const runBackupJob = backupProcessor(env, prisma, emailQueue, redis, logger);
   const workers = QUEUES.map(
     (name) =>
       new Worker(
         name,
-        async (job) => {
+        recordJobRuns(prisma, logger, async (job) => {
           if (name === 'email') return sendEmail(job);
           if (name === 'maintenance') return runMaintenance(job as never);
           if (name === 'backup') return runBackupJob(job as never);
           logger.info({ queue: name, job: job.name, id: job.id }, 'no processor for this job yet');
-        },
+        }),
         { connection, prefix: `${env.REDIS_PREFIX}:bull`, concurrency: name === 'backup' ? 1 : 2 },
       ),
   );
@@ -116,6 +121,7 @@ async function main(): Promise<void> {
     await Promise.all(workers.map((w) => w.close()));
     await Promise.all(queues.map((q) => q.close()));
     await emailQueue.close();
+    await maintenanceQueue.close();
     await redis.del(WORKER_HEARTBEAT_KEY).catch(() => undefined);
     await Promise.all([
       redis.quit(),

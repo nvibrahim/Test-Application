@@ -12,7 +12,9 @@ export const routeMetaSchema = z.object({
   feature: z.string().optional(),
   stage: z.enum(['verify_two_factor', 'change_password', 'active']).optional(),
   group: z.string().optional(),
-  icon: z.enum(['home', 'user', 'activity', 'settings', 'users', 'shield', 'archive']).optional(),
+  icon: z
+    .enum(['home', 'user', 'activity', 'settings', 'users', 'shield', 'archive', 'list', 'toggle'])
+    .optional(),
   order: z.number().int().default(100),
   /** Shown in navigation (false for detail pages). */
   nav: z.boolean().default(true),
@@ -73,6 +75,30 @@ export const appRoutes = {
     permission: 'backups.read',
     group: 'Administration',
     order: 150,
+  }),
+  jobs: defineRoute({
+    path: '/admin/jobs',
+    title: 'Jobs',
+    icon: 'activity',
+    permission: 'system.read',
+    group: 'Administration',
+    order: 160,
+  }),
+  audit: defineRoute({
+    path: '/admin/audit',
+    title: 'Audit log',
+    icon: 'list',
+    permission: 'audit.read',
+    group: 'Administration',
+    order: 170,
+  }),
+  features: defineRoute({
+    path: '/admin/features',
+    title: 'Feature switches',
+    icon: 'toggle',
+    permission: 'features.manage',
+    group: 'Administration',
+    order: 180,
   }),
   notifications: defineRoute({
     path: '/notifications',

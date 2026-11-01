@@ -89,11 +89,11 @@ Phase 0 items are already covered.
 
 ## Phase 7, Operations
 
-- [ ] Scheduled jobs: declared in code, never run twice at once, "catch up" runs once after the worker was off, pause/resume/run now audited and live
-- [ ] Background jobs: live counts, history with retry/cancel/remove, each audited; Bull Board behind admin auth on the web app's origin
-- [ ] Audit log screen filters by actor, action, entity and date; CSV export needs step-up and is itself audited
+- [x] Scheduled jobs: declared in code, never run twice at once, "catch up" runs once after the worker was off, pause/resume/run now audited and live — `tasks.spec.ts`, `operations.e2e-spec.ts`, `operations.spec.ts`
+- [x] Background jobs: live counts, history with retry/cancel/remove, each audited; Bull Board behind admin auth on the web app's origin — `operations.e2e-spec.ts` (jobs, queue inspector 404/200)
+- [x] Audit log screen filters by actor, action, entity and date; CSV export needs step-up and is itself audited — `operations.e2e-spec.ts`, `operations.spec.ts` (download)
 - [x] Health details: database, Redis, worker heartbeat, mail, disk, last backup — Phase 6, `backups.spec.ts` (dashboard)
-- [ ] Release: version `YYYY.MM.DD-<sha>`, pre-release backup, migrate, restart, health check, automatic rollback; demo client first; migrations are add-only within one release
+- [x] Release: version `YYYY.MM.DD-<sha>`, pre-release backup, migrate, restart, health check, automatic rollback; demo client first; migrations are add-only within one release — `compose.spec.ts`, `release.yml`, runbook (live rehearsal pending an operations host with Docker)
 
 ## Phase 8, Hardening
 

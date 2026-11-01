@@ -2,6 +2,8 @@ import {
   Activity,
   Archive,
   Home,
+  ListChecks,
+  ToggleLeft,
   Settings,
   Shield,
   User,
@@ -18,6 +20,8 @@ const icons = {
   users: Users,
   shield: Shield,
   archive: Archive,
+  list: ListChecks,
+  toggle: ToggleLeft,
 } as const;
 
 export function RouteIcon({ icon, ...props }: { icon: RouteMeta['icon'] } & LucideProps) {

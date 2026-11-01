@@ -15,3 +15,5 @@ export * from './notifications.js';
 export * from './organization.js';
 export * from './theme/index.js';
 export * from './backups.js';
+export * from './operations.js';
+export * from './features.js';

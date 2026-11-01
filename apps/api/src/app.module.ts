@@ -4,6 +4,7 @@ import { AccessModule } from './modules/access/access.module';
 import { AppearanceModule } from './modules/appearance/appearance.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BackupsModule } from './modules/backups/backups.module';
+import { OperationsModule } from './modules/operations/operations.module';
 import { PublicModule } from './modules/public/public.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TwoFactorModule } from './modules/two-factor/two-factor.module';
@@ -44,6 +45,7 @@ import { TransactionModule } from './platform/transaction/transaction.module';
     AppearanceModule,
     PublicModule,
     BackupsModule,
+    OperationsModule,
     AccessModule,
     HealthModule,
   ],

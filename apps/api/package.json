@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1161.0",
+    "@bull-board/api": "^6.21.3",
+    "@bull-board/express": "^6.21.3",
     "@inquirer/prompts": "^8.7.5",
     "@inspower/shared": "workspace:*",
     "@nestjs/common": "^12.3.2",

@@ -5,6 +5,7 @@ import expressLib from 'express';
 import type { Express } from 'express';
 import helmet from 'helmet';
 import { assertEveryRouteHasARule } from './modules/access/route-check';
+import { mountBullBoard } from './modules/operations/bull-board';
 import type { Env } from './platform/config/config';
 import { ENV } from './platform/config/config.module';
 import { NestLogger } from './platform/logging/logging.module';
@@ -42,6 +43,7 @@ export function setupApp(app: INestApplication): INestApplication {
   app.enableCors({ origin: env.WEB_ORIGIN, credentials: true });
   app.enableShutdownHooks();
 
+  mountBullBoard(app);
   assertEveryRouteHasARule(app);
   return app;
 }
