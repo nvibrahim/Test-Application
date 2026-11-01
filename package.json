@@ -1,6 +1,6 @@
 {
   "name": "inspower-core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Inspower Core: the foundation platform (landing, sign-in, users, permissions, settings, backups).",
   "packageManager": "pnpm@10.28.0",

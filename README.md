@@ -6,9 +6,10 @@ notifications, background jobs and health. Business modules plug into this core 
 
 The approved design is [`docs/architecture/new-application-plan.md`](docs/architecture/new-application-plan.md).
 Decisions that differ from it are recorded as ADRs in `docs/architecture/adr/`. Progress is in
-[`docs/CHANGELOG.md`](docs/CHANGELOG.md).
+[`docs/CHANGELOG.md`](docs/CHANGELOG.md). Start with [`docs/handover.md`](docs/handover.md) if
+you are new; the runbooks are in `docs/runbooks/`.
 
-## What is here (Phases 0 to 7)
+## What is here (1.0: Phases 0 to 8)
 
 | Part                            | Where                         | Notes                                                                        |
 | ------------------------------- | ----------------------------- | ---------------------------------------------------------------------------- |

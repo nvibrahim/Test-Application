@@ -2,6 +2,36 @@
 
 Each phase ends with an entry here. Dates are the day the phase was finished.
 
+## 1.0.0: Hardening and handover (1 November 2026)
+
+Phase 8. The core is complete: every behaviour in `docs/architecture/behaviour-checklist.md`
+is ticked with the test that proves it, and the 1.0 acceptance checks have their evidence table
+at the end of that file.
+
+### Added
+
+- `docs/architecture/threat-model.md`: assets, attackers, seventeen attacks with the control and
+  the test for each, and the accepted open items.
+- `docs/architecture/accessibility-audit.md`: axe on every journey at three widths (19 journeys,
+  0 serious or critical violations) plus the manual pass; Lighthouse left for the operations host.
+- `docs/architecture/load-test.md` and `pnpm --filter @inspower/api test:load`: 400 sign-ins,
+  10 concurrent, 18 sign-ins/s, p95 643 ms, lockout on the tenth wrong password.
+- `docs/handover.md`: where everything is, how to run, operate and extend it, what the operator
+  does outside the app, known limits.
+- ADR-004 recording the Phase 6 and 7 decisions.
+
+### Changed
+
+- `pnpm audit --prod --audit-level high` is clean: nodemailer moved from 8 to 10.3 (three high and
+  twelve moderate advisories, all in nodemailer).
+- Package versions set to 1.0.0; the git tag `v1.0.0` marks this state.
+
+### Left for the operations host
+
+- Live rehearsal of `inspower release` and `client new` with Docker (planned steps are unit
+  tested and dry-run here).
+- Lighthouse on the landing page; load test on production-like hardware.
+
 ## Phase 7: Operations (1 November 2026)
 
 ### Added

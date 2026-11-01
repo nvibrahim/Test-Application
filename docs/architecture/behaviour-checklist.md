@@ -97,5 +97,18 @@ Phase 0 items are already covered.
 
 ## Phase 8, Hardening
 
-- [ ] Threat model reviewed; `pnpm audit` clean at high severity; accessibility audit passed; sign-in load test recorded
-- [ ] Every 1.0 acceptance check in the plan's section 14 passes
+- [x] Threat model reviewed; `pnpm audit` clean at high severity; accessibility audit passed; sign-in load test recorded — `threat-model.md`, audit: 0 findings after nodemailer 10, `accessibility-audit.md`, `load-test.md`
+- [x] Every 1.0 acceptance check in the plan's section 14 passes — see the acceptance table below
+
+## 1.0 acceptance checks (plan section 14)
+
+| Check                                                                                                             | Evidence                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A new owner can set up the system from a fresh database without reading code                                      | `inspower admin create` then the setup wizard: `auth.spec.ts` (fresh e2e database every run), README                                                                                                                |
+| An invited Viewer cannot reach any admin screen or endpoint                                                       | `access.e2e-spec.ts` (403 on every admin route), `operations.e2e-spec.ts` (viewer refused on jobs, audit, features), page redirects in `access.spec.ts`                                                             |
+| A user without 2FA sees the reminder banner and gets the reminder emails; a lost phone is recoverable by an admin | `two-factor.spec.ts` (banner), `two-factor.e2e-spec.ts` (reminder job, admin reset), `inspower admin recover`                                                                                                       |
+| Backups run nightly, are encrypted, copied off-site, and a restore drill has passed within 7 days                 | `backup-nightly` job, AES-256-GCM file format (`backup-file.spec.ts`), off-site targets (`backups.e2e-spec.ts`), weekly `restore-drill` with `restore_tested_at`; status cards and health check flag a missed drill |
+| Changing the brand colour keeps every screen WCAG AA in both themes                                               | `theme.test.ts` (every pair, six presets, sixteen colours, both themes), `appearance.e2e-spec.ts` (yellow darkened)                                                                                                 |
+| The whole stack runs on Windows, macOS and Linux with the same commands                                           | pnpm scripts and the TypeScript CLI only; no shell scripts; Docker Compose for services and clients                                                                                                                 |
+| Every 1.0 screen passes its e2e flow on a phone and a tablet viewport, and the app installs as a PWA              | 19 Playwright journeys at phone, tablet and desktop with axe; manifest from Settings (`appearance.spec.ts`)                                                                                                         |
+| The last Super Admin cannot be disabled; a Super Admin created today holds a permission added next year           | `access.e2e-spec.ts` (last_super_admin), `ensureBuiltInRoles` syncs the registry at every start (`access-sync`)                                                                                                     |
