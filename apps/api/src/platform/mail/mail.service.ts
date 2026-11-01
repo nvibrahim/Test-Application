@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import nodemailer, { type Transporter } from 'nodemailer';
 import type { Env } from '../config/config';
 import { ENV } from '../config/config.module';
+import { PrismaService } from '../database/prisma.service';
+import { resolveSmtp } from './mail-settings';
 
 export interface MailMessage {
   to: string;
@@ -17,6 +19,8 @@ export interface SmtpSettings {
   user?: string;
   password?: string;
   from: string;
+  replyTo?: string;
+  requireTls?: boolean;
 }
 
 export function transportFor(settings: SmtpSettings): Transporter {
@@ -25,41 +29,40 @@ export function transportFor(settings: SmtpSettings): Transporter {
     port: settings.port,
     secure: settings.secure,
     auth: settings.user ? { user: settings.user, pass: settings.password ?? '' } : undefined,
+    requireTLS: settings.requireTls ?? false,
     connectionTimeout: 10_000,
   });
 }
 
 /**
- * Sends through SMTP. Phase 0 reads the settings from the environment; Phase 4 lets
- * Settings -> Email override them per organization. Templates arrive with React Email.
+ * Sends through SMTP, from Settings -> Email when a host is saved there, otherwise the
+ * environment. Queued mail goes through the worker; this is for the test send and health.
  */
 @Injectable()
 export class MailService {
-  private readonly settings: SmtpSettings;
+  constructor(
+    @Inject(ENV) private readonly env: Env,
+    private readonly prisma: PrismaService,
+  ) {}
 
-  constructor(@Inject(ENV) env: Env) {
-    this.settings = {
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      secure: env.SMTP_SECURE,
-      user: env.SMTP_USER || undefined,
-      password: env.SMTP_PASSWORD || undefined,
-      from: env.SMTP_FROM,
-    };
+  async settingsFor(organizationId: string | null): Promise<SmtpSettings> {
+    return resolveSmtp(this.prisma, this.env, organizationId);
   }
 
-  async send(message: MailMessage): Promise<{ messageId: string }> {
-    const info = await transportFor(this.settings).sendMail({
-      from: this.settings.from,
+  async send(organizationId: string | null, message: MailMessage): Promise<{ messageId: string }> {
+    const settings = await this.settingsFor(organizationId);
+    const info = await transportFor(settings).sendMail({
+      from: settings.from,
+      replyTo: settings.replyTo,
       ...message,
     });
     return { messageId: String(info.messageId) };
   }
 
   /** Health: can the mail server be reached? Never sends anything. */
-  async verify(): Promise<boolean> {
+  async verify(organizationId: string | null = null): Promise<boolean> {
     try {
-      await transportFor(this.settings).verify();
+      await transportFor(await this.settingsFor(organizationId)).verify();
       return true;
     } catch {
       return false;

@@ -14,7 +14,7 @@ import {
   describePasswordProblem,
 } from '@inspower/shared';
 import { ZodPipe } from '../../platform/http/zod.pipe';
-import { AllowDuringSetup, Public, SignedIn } from '../access/decorators';
+import { AllowDuringMaintenance, AllowDuringSetup, Public, SignedIn } from '../access/decorators';
 import { authOf } from '../access/request-context';
 import { CredentialsService } from './credentials.service';
 import { CsrfService } from './csrf.service';
@@ -58,6 +58,7 @@ export class AuthController {
 
   @SignedIn('verify_two_factor', 'change_password', 'active')
   @AllowDuringSetup()
+  @AllowDuringMaintenance()
   @Post('sign-out')
   @HttpCode(204)
   async signOut(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
@@ -67,6 +68,7 @@ export class AuthController {
   /** The web app's guard calls this on every page: who is signed in, which stage, when it expires. */
   @SignedIn('verify_two_factor', 'change_password', 'active')
   @AllowDuringSetup()
+  @AllowDuringMaintenance()
   @Get('session')
   async session(@Req() req: Request): Promise<SessionInfo> {
     const auth = authOf(req);

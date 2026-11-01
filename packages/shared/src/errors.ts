@@ -23,6 +23,7 @@ export const errorCodes = [
   'two_factor_not_set_up',
   'last_super_admin',
   'reserved_permission',
+  'maintenance',
 ] as const;
 
 export type ErrorCode = (typeof errorCodes)[number];
@@ -58,4 +59,5 @@ export const httpStatusFor: Record<ErrorCode, number> = {
   two_factor_not_set_up: 409,
   last_super_admin: 409,
   reserved_permission: 403,
+  maintenance: 503,
 };

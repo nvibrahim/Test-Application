@@ -4,6 +4,7 @@ import { AccessModule } from './modules/access/access.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TwoFactorModule } from './modules/two-factor/two-factor.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
 import { OrganizationModule } from './modules/organization/organization.module';
@@ -36,6 +37,7 @@ import { TransactionModule } from './platform/transaction/transaction.module';
     TwoFactorModule,
     UsersModule,
     RolesModule,
+    RealtimeModule,
     AccessModule,
     HealthModule,
   ],

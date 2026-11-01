@@ -49,6 +49,7 @@ export type EmailTemplate =
       name: 'email-change';
       params: { appName: string; fullName: string; link: string; minutes: number };
     }
+  | { name: 'admin-event'; params: { appName: string; title: string; body: string; link: string } }
   | { name: 'test'; params: { appName: string } };
 
 export type EmailTemplateName = EmailTemplate['name'];
@@ -242,6 +243,14 @@ export function renderEmail(template: EmailTemplate): RenderedEmail {
           ],
           { text: 'Confirm my email', link },
         ),
+      };
+    }
+    case 'admin-event': {
+      const { appName, title, body, link } = template.params;
+      return {
+        subject: `${appName}: ${title}`,
+        text: `${title}\n\n${body}\n\n${link}`,
+        html: layout(appName, title, body ? [escapeHtml(body)] : [], { text: 'Open', link }),
       };
     }
     case 'test': {

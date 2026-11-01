@@ -1,10 +1,13 @@
 import { Global, Module } from '@nestjs/common';
+import { TwoFactorModule } from '../two-factor/two-factor.module';
 import { LocationsController } from './locations.controller';
+import { OrganizationController } from './organization.controller';
 import { OrganizationService } from './organization.service';
 
 @Global()
 @Module({
-  controllers: [LocationsController],
+  imports: [TwoFactorModule],
+  controllers: [LocationsController, OrganizationController],
   providers: [OrganizationService],
   exports: [OrganizationService],
 })

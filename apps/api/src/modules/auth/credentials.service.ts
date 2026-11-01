@@ -15,6 +15,7 @@ import { PasswordsService } from './passwords.service';
 import { SecuritySettingsService } from './security-settings';
 import { SessionsService } from './sessions.service';
 import { ThrottleService } from './throttle.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { trustedTokenFrom } from '../two-factor/trusted-cookie';
 import { hashToken } from '../../platform/crypto/crypto';
 import { deviceLabel } from './sessions.service';
@@ -31,6 +32,7 @@ export class CredentialsService {
     private readonly security: SecuritySettingsService,
     private readonly organizations: OrganizationService,
     private readonly queue: QueueService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   /**
@@ -91,6 +93,13 @@ export class CredentialsService {
           { organizationId, actorId: null, ip, userAgent, requestId: requestIdOf(req) },
           async ({ tx, audit }) => {
             await tx.user.update({ where: { id: user.id }, data: { lockedUntil } });
+            await this.notifications.notifyAdmins(tx, organizationId, {
+              type: 'admin.security_lockout',
+              title: `${user.fullName}'s account was locked`,
+              body: `${count} wrong passwords in a row.`,
+              link: `/admin/users/${user.id}`,
+              adminEvent: 'security.lockout',
+            });
             await audit({
               action: AuthActions.loginLocked,
               entityType: 'user',

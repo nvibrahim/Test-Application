@@ -6,6 +6,7 @@ import { SessionsService } from '../auth/sessions.service';
 import { CsrfService } from '../auth/csrf.service';
 import {
   ACCESS_RULE,
+  ALLOW_DURING_MAINTENANCE,
   ALLOW_DURING_SETUP,
   REQUIRE_FEATURE,
   REQUIRE_STEP_UP,
@@ -13,6 +14,7 @@ import {
   type AccessRule,
 } from './decorators';
 import { FeaturesService } from './features.service';
+import { MaintenanceService } from './maintenance.service';
 import { StepUpService } from '../two-factor/step-up.service';
 import type { AuthenticatedRequest } from './request-context';
 
@@ -30,6 +32,7 @@ export class AccessGuard implements CanActivate {
     private readonly csrf: CsrfService,
     private readonly stepUp: StepUpService,
     private readonly features: FeaturesService,
+    private readonly maintenance: MaintenanceService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -65,6 +68,16 @@ export class AccessGuard implements CanActivate {
       this.reflector.getAllAndOverride<boolean>(ALLOW_DURING_SETUP, [handler, cls]) === true;
     if (auth.stage === 'active' && !auth.setupComplete && !allowDuringSetup) {
       throw new ApiException('setup_required', 'Finish the organization setup first');
+    }
+
+    const allowDuringMaintenance =
+      this.reflector.getAllAndOverride<boolean>(ALLOW_DURING_MAINTENANCE, [handler, cls]) === true;
+    if (
+      auth.stage === 'active' &&
+      !allowDuringMaintenance &&
+      !(await this.maintenance.mayUse(auth))
+    ) {
+      throw new ApiException('maintenance', await this.maintenance.message(auth.organizationId));
     }
 
     if (rule.kind === 'permissions') {

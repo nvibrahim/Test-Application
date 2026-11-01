@@ -10,3 +10,6 @@ export * from './auth.js';
 export * from './two-factor.js';
 export * from './scheduler.js';
 export * from './access.js';
+export * from './settings/sections.js';
+export * from './notifications.js';
+export * from './organization.js';

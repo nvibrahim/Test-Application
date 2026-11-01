@@ -52,7 +52,8 @@ export class HealthService {
   }
 
   private async mailServer(): Promise<HealthCheck> {
-    const ok = await this.mail.verify();
+    const org = await this.prisma.organization.findFirst({ select: { id: true } });
+    const ok = await this.mail.verify(org?.id ?? null);
     return ok ? { status: 'ok' } : { status: 'degraded', detail: 'Mail server not reachable' };
   }
 

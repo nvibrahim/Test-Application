@@ -7,6 +7,7 @@ import { setupApp } from './app.setup';
 import { type Env, InvalidEnvironmentError, isPlaceholderKey } from './platform/config/config';
 import { ENV } from './platform/config/config.module';
 import { LOGGER } from './platform/logging/logging.module';
+import { RealtimeGateway } from './modules/realtime/realtime.gateway';
 import type { Logger } from './platform/logging/logger';
 
 async function main(): Promise<void> {
@@ -23,6 +24,7 @@ async function main(): Promise<void> {
     }
   }
 
+  app.get(RealtimeGateway).start();
   await app.listen(env.API_PORT, env.API_HOST);
   logger.info(
     { host: env.API_HOST, port: env.API_PORT, version: env.APP_VERSION },

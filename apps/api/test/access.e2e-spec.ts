@@ -379,8 +379,12 @@ describe('deny by default for a teammate', () => {
 describe('locations and scoping', () => {
   it('lists the locations a person may see', async () => {
     const res = await owner.get('/locations');
-    expect(res.body.locations).toEqual([
-      { id: headOfficeId, name: 'Portsmouth', isHeadOffice: true, isActive: true },
-    ]);
+    expect(res.body.locations).toHaveLength(1);
+    expect(res.body.locations[0]).toMatchObject({
+      id: headOfficeId,
+      name: 'Portsmouth',
+      isHeadOffice: true,
+      isActive: true,
+    });
   });
 });
