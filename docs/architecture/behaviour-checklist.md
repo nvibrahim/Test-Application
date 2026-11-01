@@ -19,20 +19,20 @@ Phase 0 items are already covered.
 
 ## Phase 1, Identity
 
-- [ ] Sign-in with an unknown email takes the same time as with a known one (dummy Argon2 verify)
-- [ ] Wrong password: progressive delay after 5 attempts, lockout for 15 minutes after 10 with an email; the database lock is authoritative
-- [ ] Per-IP block and per-email limits; **fail closed** when Redis is unavailable ("temporarily unavailable")
-- [ ] Session token is opaque, 32 bytes, stored only as SHA-256; cookie is `__Host-inspower_session`, HttpOnly, Secure (outside dev), SameSite=Lax
-- [ ] Idle timeout 30 minutes with a warning 2 minutes before and `POST /auth/session/extend`; absolute timeout 12 hours; both from Settings → Security
-- [ ] Session stage machine: `verify_two_factor` (only when 2FA is set up) → `change_password` → `active`; guards accept a list of stages
-- [ ] CSRF: double-submit token plus Origin check on every state-changing request, applied globally
-- [ ] Password policy (shared code, same in browser and API): minimum 8 (Super Admin 12), maximum 128, zxcvbn ≥ 3, no email/name/organization/app name, breached-password check skipped silently offline, history of 5, optional expiry, forced change flag
-- [ ] Argon2id 64 MiB t=3 with rehash on sign-in when parameters change
-- [ ] Password reset link lasts 30 minutes, works once, revokes every session on use
-- [ ] "Sign out other sessions" revokes them at once; revoked sessions fail on the next request
-- [ ] First-run setup wizard: password, (optional) 2FA, organization, head office, preferences; the app stays locked until organization and head office exist
-- [ ] `inspower admin create` refuses when a Super Admin exists; `admin recover` resets 2FA and sets a temporary password; the owner types the password, never the assistant
-- [ ] Every sign-in step is in the audit log with the visitor's address (through `TRUST_PROXY`)
+- [x] Sign-in with an unknown email takes the same time as with a known one (dummy Argon2 verify) — `auth.e2e-spec.ts` (answers unknown emails and wrong passwords the same way); `passwords.service.ts` verifyDummy
+- [x] Wrong password: progressive delay after 5 attempts, lockout for 15 minutes after 10 with an email; the database lock is authoritative — `throttle.spec.ts` (delays), `auth.e2e-spec.ts` (lockout)
+- [x] Per-IP block and per-email limits; **fail closed** when Redis is unavailable ("temporarily unavailable") — `throttle.spec.ts` (fails closed), `auth.e2e-spec.ts` (reset limit)
+- [x] Session token is opaque, 32 bytes, stored only as SHA-256; cookie is `__Host-inspower_session`, HttpOnly, Secure (outside dev), SameSite=Lax — `sessions.service.ts`, `auth.e2e-spec.ts` (HttpOnly cookie)
+- [x] Idle timeout 30 minutes with a warning 2 minutes before and `POST /auth/session/extend`; absolute timeout 12 hours; both from Settings → Security — `auth.e2e-spec.ts` (extends the idle timer), `security.ts` defaults, `idle-banner.tsx`
+- [x] Session stage machine: `verify_two_factor` (only when 2FA is set up) → `change_password` → `active`; guards accept a list of stages — `credentials.spec.ts`, `auth.e2e-spec.ts` (wrong_stage)
+- [x] CSRF: double-submit token plus Origin check on every state-changing request, applied globally — `auth.e2e-spec.ts` (no header; other origin)
+- [x] Password policy (shared code, same in browser and API): minimum 8 (Super Admin 12), maximum 128, zxcvbn ≥ 3, no email/name/organization/app name, breached-password check skipped silently offline, history of 5, optional expiry, forced change flag — `password-policy.test.ts`, `auth.e2e-spec.ts` (weak, reused)
+- [x] Argon2id 64 MiB t=3 with rehash on sign-in when parameters change — `passwords.service.ts` ARGON2_OPTIONS, `credentials.service.ts` needsRehash
+- [x] Password reset link lasts 30 minutes, works once, revokes every session on use — `auth.e2e-spec.ts` (forgot and reset password)
+- [x] "Sign out other sessions" revokes them at once; revoked sessions fail on the next request — `auth.e2e-spec.ts` (lists sessions, signs the others out)
+- [x] First-run setup wizard: password, (optional) 2FA, organization, head office, preferences; the app stays locked until organization and head office exist — `auth.e2e-spec.ts` (setup_required; completes the organization), `e2e/auth.spec.ts`
+- [x] `inspower admin create` refuses when a Super Admin exists; `admin recover` resets 2FA and sets a temporary password; the owner types the password, never the assistant — `auth.e2e-spec.ts` (the command line), `cli/admin.ts`
+- [x] Every sign-in step is in the audit log with the visitor's address (through `TRUST_PROXY`) — `auth.e2e-spec.ts` (login_attempts reasons; audit actions)
 
 ## Phase 2, Two-factor
 

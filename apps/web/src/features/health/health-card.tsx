@@ -1,4 +1,9 @@
-import { healthDetailsSchema, type HealthCheck, type HealthDetails } from '@inspower/shared';
+import {
+  healthDetailsSchema,
+  healthSchema,
+  type HealthCheck,
+  type HealthDetails,
+} from '@inspower/shared';
 import { Badge } from '@inspower/ui/components/badge';
 import {
   Card,
@@ -7,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@inspower/ui/components/card';
-import { apiGet, apiInternalUrl, ApiRequestError } from '@/lib/api';
+import { apiServer, ApiRequestError } from '@/lib/api';
 
 const labels: Record<keyof HealthDetails['checks'], string> = {
   database: 'Database',
@@ -22,32 +27,39 @@ function StatusBadge({ status }: { status: HealthCheck['status'] }) {
   return <Badge variant={variant}>{text}</Badge>;
 }
 
-export async function HealthCard() {
+/**
+ * With a session that may read system status: every dependency. Without one: the public,
+ * shallow health only.
+ */
+export async function HealthCard({ cookie }: { cookie?: string }) {
   let details: HealthDetails | null = null;
+  let shallow: { status: HealthCheck['status']; version: string; time: string } | null = null;
   let problem: string | null = null;
   try {
-    details = await apiGet('/health/details', healthDetailsSchema, { base: apiInternalUrl() });
+    if (cookie) details = await apiServer('/health/details', healthDetailsSchema, { cookie });
+    else shallow = await apiServer('/health', healthSchema);
   } catch (error) {
-    problem =
-      error instanceof ApiRequestError
-        ? `The API answered ${error.status}: ${error.message}`
-        : 'The API is not reachable';
+    if (error instanceof ApiRequestError && (error.status === 401 || error.status === 403)) {
+      shallow = await apiServer('/health', healthSchema).catch(() => null);
+    } else {
+      problem =
+        error instanceof ApiRequestError
+          ? `The API answered ${error.status}: ${error.message}`
+          : 'The API is not reachable';
+    }
   }
+  const head = details ?? shallow;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-3">
           <span>System health</span>
-          {details ? (
-            <StatusBadge status={details.status} />
-          ) : (
-            <Badge variant="destructive">Down</Badge>
-          )}
+          {head ? <StatusBadge status={head.status} /> : <Badge variant="destructive">Down</Badge>}
         </CardTitle>
         <CardDescription>
-          {details
-            ? `Version ${details.version}, checked ${new Date(details.time).toLocaleTimeString('en-GB')}`
+          {head
+            ? `Version ${head.version}, checked ${new Date(head.time).toLocaleTimeString('en-GB')}`
             : problem}
         </CardDescription>
       </CardHeader>
@@ -76,6 +88,10 @@ export async function HealthCard() {
               );
             })}
           </ul>
+        </CardContent>
+      ) : shallow ? (
+        <CardContent className="text-sm text-muted-foreground">
+          Sign in with system access to see every dependency.
         </CardContent>
       ) : null}
     </Card>

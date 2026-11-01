@@ -2,6 +2,40 @@
 
 Each phase ends with an entry here. Dates are the day the phase was finished.
 
+## Phase 1, Identity (1 November 2026)
+
+- **Shared:** password policy on zxcvbn (minimum 8, 12 for a Super Admin, strength score 3,
+  no personal words, 128 maximum) with one implementation for browser and API; Settings ->
+  Security schema and defaults; auth contracts; seven new error codes.
+- **API, auth module:** Argon2id with rehash; breached-password check (HIBP k-anonymity,
+  skipped silently offline); password history; brute-force protection with Redis counters that
+  fail closed and a database lock that is authoritative (growing delay after 5, lock after 10
+  with an email); opaque sessions (hashed token, HttpOnly cookie, idle and absolute expiry,
+  remember-me, 60-second Redis cache, instant revocation); double-submit CSRF with an Origin
+  check; the global access guard enforcing rules, stages, the setup lock and permissions;
+  sign-in, sign-out, session info and extend, forced and voluntary password change, forgot and
+  reset (single-use 30-minute links, every session revoked), first-run setup of the organization
+  and head office, the profile with preferences and the sessions list. Email through the
+  `email` queue with an `email_log` row per message; the worker sends it.
+- **CLI:** `inspower admin create` and `inspower admin recover` (password from a hidden
+  prompt or `INSPOWER_ADMIN_PASSWORD`).
+- **Web:** sign-in, forgot and reset password, forced change-password, setup wizard (country
+  fills currency and time zone), session-ended and two-factor placeholder; the app shell with a
+  generated sidebar (desktop) and bottom bar (phone), top bar with sign-out, idle-timeout banner
+  with "Stay signed in"; dashboard; profile with Personal, Security (change password, sessions
+  with revoke and "sign out everywhere else") and Preferences (theme applied server-side).
+  Form components in `packages/ui`: Input, Label, Select, Checkbox, Alert, Field, Skeleton.
+- **Tests:** 23 API unit tests, 28 API integration tests (every refusal and the whole first
+  sign-in journey), shared and web unit tests, and Playwright with axe at phone, tablet and
+  desktop widths (`pnpm test:e2e`: resets `inspower_e2e`, starts the production builds, runs
+  the owner journey, dashboard, profile and sign-out; the emailed reset link runs where Mailpit
+  is available).
+- **Docs:** ADR-002, the lost-owner runbook, Phase 1 ticks in the behaviour checklist, screenshots
+  under `docs/architecture/screens/`.
+- **Not in this phase (by plan):** two-factor (Phase 2), invitations and other users (Phase 3),
+  Settings screens (Phase 4), the realtime gateway that closes a revoked session instantly in
+  the browser (the revoked session already fails on its next request).
+
 ## Phase 0, Foundation (1 November 2026)
 
 - Brand-new repository scaffold: pnpm workspaces + turbo (`envMode: strict`), Node 24, TypeScript 6

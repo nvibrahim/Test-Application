@@ -8,7 +8,7 @@ The approved design is [`docs/architecture/new-application-plan.md`](docs/archit
 Decisions that differ from it are recorded as ADRs in `docs/architecture/adr/`. Progress is in
 [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 
-## What is here (Phase 0, Foundation)
+## What is here (Phases 0 and 1)
 
 | Part                            | Where                         | Notes                                                                        |
 | ------------------------------- | ----------------------------- | ---------------------------------------------------------------------------- |
@@ -32,10 +32,12 @@ pnpm install
 pnpm services:up                # PostgreSQL, Valkey and Mailpit in Docker
 pnpm db:deploy                  # apply the migrations
 pnpm db:seed                    # countries and currencies
+pnpm inspower admin create      # the first Super Admin: you type the email, name and a temporary password
 pnpm dev                        # API on http://127.0.0.1:4000, web on http://localhost:3000
 ```
 
-Open http://localhost:3000/health to see every dependency. Emails land in Mailpit at
+Sign in at http://localhost:3000/sign-in with the temporary password; you will be asked to choose
+your own and to set up the organization. http://localhost:3000/health shows every dependency. Emails land in Mailpit at
 http://127.0.0.1:8025. Stop the services with `pnpm services:down` (data is kept).
 
 ## Checks
@@ -64,6 +66,8 @@ http://127.0.0.1:8025. Stop the services with `pnpm services:down` (data is kept
 
 - Every API route declares `@Public()`, `@SignedIn()` or `@RequirePermissions()`; the API refuses
   to start otherwise.
+- Every state-changing request carries the CSRF header and comes from `WEB_ORIGIN`; the browser
+  client (`apps/web/src/lib/api.ts`) does this for you.
 - Every write goes through `TransactionService.run`, which commits the change, its audit row and
   any realtime event together. Audit actions are named `module.entity.action`.
 - The product name is never a literal in code: `DEFAULT_APP_NAME` now, Settings → General later.
