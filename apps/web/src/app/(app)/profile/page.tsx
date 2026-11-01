@@ -1,6 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { profileSchema, sessionListSchema, twoFactorStatusSchema } from '@inspower/shared';
+import {
+  notificationPreferencesSchema,
+  profileSchema,
+  sessionListSchema,
+  twoFactorStatusSchema,
+} from '@inspower/shared';
+import { NotificationPreferences } from '@/features/profile/notification-preferences';
 import { TwoFactorCard } from '@/features/two-factor/two-factor-card';
 import {
   Card,
@@ -27,6 +33,7 @@ const tabs = [
   { key: 'personal', label: 'Personal info' },
   { key: 'security', label: 'Security' },
   { key: 'preferences', label: 'Preferences' },
+  { key: 'notifications', label: 'Notifications' },
 ] as const;
 type Tab = (typeof tabs)[number]['key'];
 
@@ -39,10 +46,11 @@ export default async function ProfilePage({
   const { tab: requested } = await searchParams;
   const tab: Tab = tabs.some((t) => t.key === requested) ? (requested as Tab) : 'personal';
   const cookie = await cookieHeader();
-  const [profile, sessions, twoFactor] = await Promise.all([
+  const [profile, sessions, twoFactor, notificationPrefs] = await Promise.all([
     apiServer('/profile', profileSchema, { cookie }),
     apiServer('/profile/sessions', sessionListSchema, { cookie }),
     apiServer('/two-factor', twoFactorStatusSchema, { cookie }),
+    apiServer('/profile/notifications', notificationPreferencesSchema, { cookie }),
   ]);
 
   return (
@@ -129,6 +137,17 @@ export default async function ProfilePage({
           </CardHeader>
           <CardContent>
             <PreferencesForm preferences={profile.preferences} />
+          </CardContent>
+        </Card>
+      ) : null}
+      {tab === 'notifications' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Notifications</CardTitle>
+            <CardDescription>Which events reach you in the app and by email.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <NotificationPreferences preferences={notificationPrefs.preferences} />
           </CardContent>
         </Card>
       ) : null}

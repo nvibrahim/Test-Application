@@ -2,6 +2,36 @@
 
 Each phase ends with an entry here. Dates are the day the phase was finished.
 
+## Phase 4, Organization and settings (1 November 2026)
+
+- **Settings** (`/admin/settings`): eight sections, each with its own Zod schema in the shared
+  package, saved independently as key/value rows with defaults, versioned, cached a minute and
+  dropped on write; secrets (the SMTP password) sealed with AES-256-GCM and reported as set or
+  not set, never returned; permission and step-up per section (Security needs the reserved
+  permission; Security, Email, Backups and Maintenance ask for step-up); before-and-after audit
+  without secrets; a schema-driven form on the web with provider presets and **Send test email**.
+- **Public settings** endpoint: name, tagline, landing wording, appearance and maintenance state
+  for every page before sign-in; the product name now comes from Settings -> General everywhere.
+- **Organization profile** with preview-then-edit; legal name, country and currency ask for
+  step-up; a version check on every save. **Locations**: add and edit, never delete; the head
+  office cannot be made inactive; optional manager.
+- **Notifications**: a type registry with defaults, per-user preferences on the profile, the
+  list page with unread filter and mark read, the bell in the top bar, administrator
+  notifications (lockout, security settings changed, maintenance) with email per Settings ->
+  Notifications plus extra addresses.
+- **Maintenance mode**: closes the app to everyone except the chosen roles with a message;
+  sign-out and the session still answer; the web shows the message instead of the app.
+- **Realtime**: a Socket.IO gateway on the API fed by the outbox through Redis, rooms per
+  user, session, organization and admin, session-cookie authentication from our origin only;
+  the web app refreshes open screens on any event for the person, and a session revoked
+  elsewhere is disconnected at once.
+- **Mail settings** resolved from Settings -> Email with the environment as fallback, by the
+  API (test send, health) and the worker (every queued email).
+- **Tests:** 31 API unit, 71 API integration (sections, secrets, step-up, maintenance for a
+  Member and the Super Admin, profile and locations rules, notifications and preferences,
+  administrator emails), 26 shared; Playwright: settings save, provider preset, organization
+  edit after preview, adding a location, the notifications page.
+
 ## Phase 3, Access (1 November 2026)
 
 - **Permission registry:** 24 `resource.action` keys across users, roles, organization,

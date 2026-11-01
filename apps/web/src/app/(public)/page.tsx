@@ -11,7 +11,7 @@ export default async function HomePage() {
   const target = session ? homeFor(session.stage, session.setupComplete) : '/sign-in';
   return (
     <main className="mx-auto flex min-h-[60dvh] max-w-3xl flex-col items-center justify-center gap-6 px-4 text-center">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{appName()}</h1>
+      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{await appName()}</h1>
       <p className="max-w-prose text-muted-foreground">
         The foundation platform: sign in to manage your organization’s people, settings and records.
       </p>

@@ -1,15 +1,18 @@
 import type { Metadata, Viewport } from 'next';
-import { appName } from '@/lib/brand';
+import { publicSettings } from '@/lib/brand';
 import { getSession } from '@/lib/session';
 import { apiServer } from '@/lib/api';
 import { cookieHeader } from '@/lib/session';
 import { profileSchema } from '@inspower/shared';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: { default: appName(), template: `%s · ${appName()}` },
-  description: 'Foundation platform',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await publicSettings();
+  return {
+    title: { default: s.appName, template: `%s · ${s.appName}` },
+    description: s.tagline || 'Foundation platform',
+  };
+}
 
 export const viewport: Viewport = {
   width: 'device-width',

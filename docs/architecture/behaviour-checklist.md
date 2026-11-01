@@ -58,14 +58,14 @@ Phase 0 items are already covered.
 
 ## Phase 4, Organization and settings
 
-- [ ] One organization per database; `organization_id` on every table
-- [ ] Exactly one head office, which cannot be made inactive; locations are never deleted
-- [ ] Settings sections save independently, are versioned, and secrets never come back to the browser ("set / not set")
-- [ ] Changing legal name, tax number, country or currency asks for step-up; Security, Email and Maintenance sections ask for step-up
-- [ ] Settings cache invalidates by outbox event; a cached value from an older shape is read again (version-keyed cache)
-- [ ] Every save checks the record's `version`; a stale save says so instead of overwriting
-- [ ] Email provider presets are data only; "Send test email" sends to the signed-in address without saving
-- [ ] Notifications: per-type defaults, per-user overrides, bell with live updates
+- [x] One organization per database; `organization_id` on every table — `schema/*.prisma`, `organization.controller.ts`
+- [x] Exactly one head office, which cannot be made inactive; locations are never deleted — `settings.e2e-spec.ts` (never deactivates the head office)
+- [x] Settings sections save independently, are versioned, and secrets never come back to the browser ("set / not set") — `settings.e2e-spec.ts` (Email keeps the password sealed)
+- [x] Changing legal name, tax number, country or currency asks for step-up; Security, Email and Maintenance sections ask for step-up — `settings.e2e-spec.ts` (legal name needs step-up; Security needs step-up)
+- [x] Settings cache invalidates by outbox event; a cached value from an older shape is read again (version-keyed cache) — `settings-reader.ts` (version in the key, parse-or-defaults), `settings.service.ts` (invalidate on write)
+- [x] Every save checks the record's `version`; a stale save says so instead of overwriting — `settings.e2e-spec.ts` (organization conflict), `access.e2e-spec.ts` (roles, users)
+- [x] Email provider presets are data only; "Send test email" sends to the signed-in address without saving — `sections.ts` presets, `settings.e2e-spec.ts` (test email), browser `settings.spec.ts`
+- [x] Notifications: per-type defaults, per-user overrides, bell with live updates — `settings.e2e-spec.ts` (notifications), `realtime.gateway.ts`, `bell.tsx`
 
 ## Phase 5, Theme, landing and mobile
 
