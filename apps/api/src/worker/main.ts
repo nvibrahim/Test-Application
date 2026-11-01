@@ -12,6 +12,7 @@ import {
 import { createLogger } from '../platform/logging/logger';
 import { OUTBOX_CHANNEL } from '../platform/outbox/outbox';
 import { createRedis } from '../platform/redis/redis.service';
+import { emailProcessor } from './email.processor';
 
 export const QUEUES = ['email', 'maintenance', 'backup', 'exports'] as const;
 export type QueueName = (typeof QUEUES)[number];
@@ -80,11 +81,13 @@ async function main(): Promise<void> {
   const queues = QUEUES.map(
     (name) => new Queue(name, { connection, prefix: `${env.REDIS_PREFIX}:bull` }),
   );
+  const sendEmail = emailProcessor(env, prisma, logger);
   const workers = QUEUES.map(
     (name) =>
       new Worker(
         name,
         async (job) => {
+          if (name === 'email') return sendEmail(job);
           logger.info({ queue: name, job: job.name, id: job.id }, 'no processor for this job yet');
         },
         { connection, prefix: `${env.REDIS_PREFIX}:bull`, concurrency: 2 },

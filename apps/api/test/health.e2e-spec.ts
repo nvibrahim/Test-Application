@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { healthDetailsSchema, healthSchema } from '@inspower/shared';
+import { healthSchema } from '@inspower/shared';
 import { createTestApp } from './app';
 
 let app: INestApplication;
@@ -28,14 +28,10 @@ describe('GET /api/v1/health', () => {
     expect(res.headers['x-request-id']).toBe('test-request-0001');
   });
 
-  it('reports every dependency on /details, the worker degraded when it is not running', async () => {
+  it('keeps /details behind a session (the auth suite reads it as the owner)', async () => {
     const res = await request(app.getHttpServer()).get('/api/v1/health/details');
-    expect(res.status).toBe(200);
-    const body = healthDetailsSchema.parse(res.body);
-    expect(body.checks.database.status).toBe('ok');
-    expect(body.checks.redis.status).toBe('ok');
-    expect(['ok', 'degraded']).toContain(body.checks.worker.status);
-    expect(body.status).not.toBe('down');
+    expect(res.status).toBe(401);
+    expect(res.body.code).toBe('unauthenticated');
   });
 });
 

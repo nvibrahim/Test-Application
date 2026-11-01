@@ -19,12 +19,14 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.7.5",
     "@inspower/shared": "workspace:*",
     "@nestjs/common": "^12.3.2",
     "@nestjs/core": "^12.3.2",
     "@nestjs/platform-express": "^12.3.2",
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
+    "argon2": "^0.45.1",
     "bullmq": "^6.5.3",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",

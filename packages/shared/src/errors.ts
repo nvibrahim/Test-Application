@@ -12,6 +12,13 @@ export const errorCodes = [
   'step_up_required',
   'temporarily_unavailable',
   'internal_error',
+  'invalid_credentials',
+  'account_locked',
+  'account_disabled',
+  'wrong_stage',
+  'setup_required',
+  'password_rejected',
+  'token_invalid',
 ] as const;
 
 export type ErrorCode = (typeof errorCodes)[number];
@@ -36,4 +43,11 @@ export const httpStatusFor: Record<ErrorCode, number> = {
   step_up_required: 403,
   temporarily_unavailable: 503,
   internal_error: 500,
+  invalid_credentials: 401,
+  account_locked: 423,
+  account_disabled: 403,
+  wrong_stage: 403,
+  setup_required: 403,
+  password_rejected: 422,
+  token_invalid: 400,
 };

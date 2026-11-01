@@ -27,3 +27,4 @@ export function isPermissionKey(value: string): value is PermissionKey {
 }
 
 export * from './renames.js';
+export { SUPER_ADMIN_ROLE_KEY } from './system.js';

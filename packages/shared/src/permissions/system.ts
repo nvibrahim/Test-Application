@@ -8,3 +8,6 @@ export const systemPermissions: PermissionDefinition[] = [
     description: 'Health details, background jobs and scheduled jobs.',
   },
 ];
+
+/** Role keys the platform relies on. Phase 3 adds the editable built-in roles and custom roles. */
+export const SUPER_ADMIN_ROLE_KEY = 'super_admin';

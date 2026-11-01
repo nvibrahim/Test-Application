@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { Public } from '../../modules/access/decorators';
+import { Public, RequirePermissions } from '../../modules/access/decorators';
 import { HealthService } from './health.service';
 
 @Controller('health')
@@ -17,11 +17,8 @@ export class HealthController {
     return result;
   }
 
-  /**
-   * Full details. Phase 0 has no sessions yet, so this is marked Public and limited to
-   * loopback; Phase 3 replaces the marker with @RequirePermissions('system.read').
-   */
-  @Public()
+  /** Full details: every dependency. Needs the system.read permission (the Super Admin always has it). */
+  @RequirePermissions('system.read')
   @Get('details')
   async details(@Res({ passthrough: true }) res: Response) {
     res.setHeader('Cache-Control', 'no-store');

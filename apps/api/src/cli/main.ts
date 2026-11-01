@@ -4,6 +4,7 @@ loadDotEnv();
 import { randomBytes } from 'node:crypto';
 import { loadEnv, InvalidEnvironmentError } from '../platform/config/config';
 import { createPrismaClient } from '../platform/database/prisma.service';
+import { adminCommand } from './admin';
 
 /**
  * `pnpm inspower <command>`: the cross-platform command line that replaces scripts.
@@ -12,6 +13,10 @@ import { createPrismaClient } from '../platform/database/prisma.service';
  * release commands.
  */
 const commands: Record<string, (args: string[]) => Promise<number>> = {
+  admin(args) {
+    return adminCommand(loadEnv(), args);
+  },
+
   async version() {
     console.log(process.env['APP_VERSION'] ?? 'dev');
     return 0;

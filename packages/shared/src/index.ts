@@ -4,3 +4,6 @@ export * from './health.js';
 export * from './audit.js';
 export * from './outbox.js';
 export * from './permissions/index.js';
+export * from './password-policy.js';
+export * from './settings/security.js';
+export * from './auth.js';
