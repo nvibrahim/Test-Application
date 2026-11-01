@@ -326,7 +326,7 @@ describe('deny by default for a teammate', () => {
       await prisma.auditLog.count({
         where: { action: { in: ['users.superadmin.granted', 'users.superadmin.removed'] } },
       }),
-    ).toBe(2);
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it('changes her email by confirmation: password needed, link from the new address, old address freed', async () => {

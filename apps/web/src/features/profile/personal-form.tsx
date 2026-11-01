@@ -44,11 +44,7 @@ export function PersonalForm({ fullName, email }: { fullName: string; email: str
           autoComplete="name"
         />
       </Field>
-      <Field
-        id="email"
-        label="Email"
-        help="Changing your email by confirmation arrives with Phase 3."
-      >
+      <Field id="email" label="Email" help="Change it from the card beside this one.">
         <Input {...fieldA11y('email')} value={email} readOnly disabled />
       </Field>
       <Button type="submit" disabled={busy || !name.trim() || name === fullName}>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { UserListItem } from '@inspower/shared';
@@ -69,7 +70,12 @@ export function UsersTable({
           <li key={u.id} className="rounded-lg border p-4 text-sm">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="font-medium">{u.fullName}</div>
+                <Link
+                  href={`/admin/users/${u.id}` as never}
+                  className="font-medium hover:underline"
+                >
+                  {u.fullName}
+                </Link>
                 <div className="text-muted-foreground">{u.email}</div>
               </div>
               <Badge variant={u.twoFactorEnabled ? 'success' : 'secondary'}>
@@ -92,6 +98,7 @@ export function UsersTable({
             <tr>
               <th className="p-3 font-medium">Name</th>
               <th className="p-3 font-medium">Email</th>
+              <th className="p-3 font-medium">Status</th>
               <th className="p-3 font-medium">Roles</th>
               <th className="p-3 font-medium">Two-step</th>
               <th className="p-3 font-medium">Last sign-in</th>
@@ -101,8 +108,25 @@ export function UsersTable({
           <tbody className="divide-y">
             {users.map((u) => (
               <tr key={u.id}>
-                <td className="p-3 font-medium">{u.fullName}</td>
+                <td className="p-3 font-medium">
+                  <Link href={`/admin/users/${u.id}` as never} className="hover:underline">
+                    {u.fullName}
+                  </Link>
+                </td>
                 <td className="p-3 text-muted-foreground">{u.email}</td>
+                <td className="p-3">
+                  <Badge
+                    variant={
+                      u.status === 'active'
+                        ? 'success'
+                        : u.status === 'invited'
+                          ? 'warning'
+                          : 'secondary'
+                    }
+                  >
+                    {u.status}
+                  </Badge>
+                </td>
                 <td className="p-3">{u.roles.join(', ') || '—'}</td>
                 <td className="p-3">
                   <Badge variant={u.twoFactorEnabled ? 'success' : 'secondary'}>

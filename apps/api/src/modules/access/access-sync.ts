@@ -24,6 +24,13 @@ export class AccessSync implements OnModuleInit {
 }
 
 export async function syncAccessControl(tx: Tx): Promise<void> {
+  await syncPermissionRegistry(tx);
+  const organizations = await tx.organization.findMany({ select: { id: true } });
+  for (const org of organizations) await ensureBuiltInRoles(tx, org.id);
+}
+
+/** The registry rows, renames applied; safe to run from the CLI before the API has ever started. */
+export async function syncPermissionRegistry(tx: Tx): Promise<void> {
   for (const rename of permissionRenames) {
     await tx.rolePermission.updateMany({
       where: { permissionKey: rename.from },
@@ -62,6 +69,8 @@ export async function syncAccessControl(tx: Tx): Promise<void> {
 
 /** Built-in roles exist for every organization; a built-in role's default permissions are written only when it is first created. */
 export async function ensureBuiltInRoles(tx: Tx, organizationId: string): Promise<void> {
+  // The CLI may run this before the API ever started; the permission rows must exist first.
+  if ((await tx.permission.count()) < permissionRegistry.length) await syncPermissionRegistry(tx);
   for (const def of builtInRoles) {
     const existing = await tx.role.findUnique({
       where: { organizationId_key: { organizationId, key: def.key } },

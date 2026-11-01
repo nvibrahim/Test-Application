@@ -116,8 +116,8 @@ test('the Users list shows the two-step column and the filter', async ({ page },
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto('/admin/users');
   await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Off' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Off' }).first()).toBeVisible();
   await page.getByRole('link', { name: 'Two-step on' }).click();
-  await expect(page.getByText('0 people')).toBeVisible();
+  await expect(page.getByText(/^0 people/)).toBeVisible();
   await expectAccessible(page);
 });

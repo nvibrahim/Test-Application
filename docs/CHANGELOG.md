@@ -2,6 +2,37 @@
 
 Each phase ends with an entry here. Dates are the day the phase was finished.
 
+## Phase 3, Access (1 November 2026)
+
+- **Permission registry:** 24 `resource.action` keys across users, roles, organization,
+  settings, audit, backups, notifications and system, synced to the database at start; four are
+  reserved to the Super Admin (`roles.manage`, `settings.security.manage`, `backups.restore`,
+  `users.superadmin.manage`) and refused on any other role.
+- **Roles:** the fixed Super Admin (shown as "All", not editable) plus Administrator, Member and
+  Viewer with editable defaults, a "Customised" mark and reset to default; custom roles created
+  (optionally copying another role), edited and deleted; every change needs `roles.manage` and
+  step-up and carries a version check. The matrix screen (`/admin/roles`): roles as columns,
+  permissions grouped by module as rows, one role at a time on phones.
+- **Users administration** (`/admin/users`, `/admin/users/[id]`): invite with several role
+  assignments, each for every location or one of them, and restricted locations; 72-hour
+  single-use links (a new link cancels the old; the link is also shown to the inviter); the
+  accept page with the password policy; detail with access editor, Super Admin promote and
+  demote (reserved + step-up, the last active Super Admin protected), send a new link, disable
+  (signs out everywhere, emails), enable, reset 2FA, anonymise (GDPR), recent activity; list
+  filters by status and two-step, search.
+- **Self-service email change** by a confirmation link to the new address (Profile -> Personal).
+- **Scoping in one place:** `visibleLocationIds` from restricted locations and scoped assignments;
+  the session carries the inputs; `/locations` lists what a person may see.
+- **Feature-switch guard:** `@RequireFeature()` answers "not found" while a switch is off
+  (off / on / super_admin_only / selected_users); the screen arrives in Phase 7.
+- **Retention:** expired, un-accepted invitations remove the invited user so the email can be reused.
+- **Tests:** 31 API unit, 61 API integration (matrix refusals, reserved keys, versions, invite
+  through accept, deny by default for a teammate, live role change, disable and enable, last
+  Super Admin, promote and demote, email change, anonymise), Playwright: invitation through the
+  teammate's first sign-in and the matrix edit with step-up.
+- **Not in this phase (by plan):** adding and editing locations (Phase 4), the Settings screens
+  (Phase 4), the feature switches screen (Phase 7).
+
 ## Phase 2, Two-factor (1 November 2026)
 
 - **TOTP** (30 s, ±1 step) with replay protection by the last used step; the secret is sealed

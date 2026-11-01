@@ -11,6 +11,7 @@ import {
 } from '@inspower/ui/components/card';
 import { cn } from '@inspower/ui/lib/utils';
 import { ChangePasswordForm } from '@/features/auth/change-password-form';
+import { EmailChangeForm } from '@/features/profile/email-change-form';
 import { PersonalForm } from '@/features/profile/personal-form';
 import { PreferencesForm } from '@/features/profile/preferences-form';
 import { SessionsList } from '@/features/profile/sessions-list';
@@ -65,15 +66,28 @@ export default async function ProfilePage({
       </nav>
 
       {tab === 'personal' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal info</CardTitle>
-            <CardDescription>How your name appears to others.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PersonalForm fullName={profile.fullName} email={profile.email} />
-          </CardContent>
-        </Card>
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Personal info</CardTitle>
+              <CardDescription>How your name appears to others.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PersonalForm fullName={profile.fullName} email={profile.email} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Change email</CardTitle>
+              <CardDescription>
+                Confirmed from the new address before it takes effect.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EmailChangeForm currentEmail={profile.email} />
+            </CardContent>
+          </Card>
+        </div>
       ) : null}
 
       {tab === 'security' ? (

@@ -34,6 +34,14 @@ export const appRoutes = {
     group: 'Administration',
     order: 100,
   }),
+  roles: defineRoute({
+    path: '/admin/roles',
+    title: 'Roles',
+    icon: 'shield',
+    permission: 'roles.read',
+    group: 'Administration',
+    order: 110,
+  }),
   profile: defineRoute({ path: '/profile', title: 'My profile', icon: 'user', order: 900 }),
   health: defineRoute({
     path: '/health',

@@ -46,15 +46,15 @@ Phase 0 items are already covered.
 
 ## Phase 3, Access
 
-- [ ] Permission registry synced to the database at start; renames applied once from a single list
-- [ ] Fixed Super Admin: every permission now and in future, not editable, bypasses location scoping and feature switches but not 2FA, step-up or audit; the last active one cannot be disabled or anonymised
-- [ ] Reserved permissions can never be granted to another role: `roles.manage`, `settings.security.manage`, `backups.restore`, `users.superadmin.manage`
-- [ ] Multiple roles per user, union of permissions; optional location scope per assignment, enforced by one `ScopedRepository` helper
-- [ ] Deny by default: a Viewer reaches no admin screen or endpoint (verified by test)
-- [ ] Invitation: single-use hashed token, 72 hours; the `invited` user row is removed when it expires so the email can be reused; a new link cancels the old
-- [ ] Deactivate signs the person out everywhere at once; history is kept; anonymise replaces name and email and revokes sessions
-- [ ] Route metadata drives both the server-component guard and the generated navigation; no hand-written nav list
-- [ ] Permission matrix edits need step-up and are audited
+- [x] Permission registry synced to the database at start; renames applied once from a single list — `access-sync.ts`, `access.e2e-spec.ts` (lists the registry)
+- [x] Fixed Super Admin: every permission now and in future, not editable, bypasses location scoping and feature switches but not 2FA, step-up or audit; the last active one cannot be disabled or anonymised — `access.e2e-spec.ts` (refuses to edit the Super Admin role; last Super Admin)
+- [x] Reserved permissions can never be granted to another role: `roles.manage`, `settings.security.manage`, `backups.restore`, `users.superadmin.manage` — `permissions.test.ts`, `access.e2e-spec.ts` (reserved_permission)
+- [x] Multiple roles per user, union of permissions; optional location scope per assignment, enforced by one `ScopedRepository` helper — `scoped.spec.ts`, `access.e2e-spec.ts` (two scoped roles; union)
+- [x] Deny by default: a Viewer reaches no admin screen or endpoint (verified by test) — `access.e2e-spec.ts` (deny by default for a teammate), browser `access.spec.ts`
+- [x] Invitation: single-use hashed token, 72 hours; the `invited` user row is removed when it expires so the email can be reused; a new link cancels the old — `access.e2e-spec.ts` (a new link cancels the old; accepts once), `retention-cleanup.ts`
+- [x] Deactivate signs the person out everywhere at once; history is kept; anonymise replaces name and email and revokes sessions — `access.e2e-spec.ts` (disable; anonymise)
+- [x] Route metadata drives both the server-component guard and the generated navigation; no hand-written nav list — `routes.ts`, `routes.test.ts`, browser `access.spec.ts` (Roles absent from a Member's menu)
+- [x] Permission matrix edits need step-up and are audited — `access.e2e-spec.ts` (step_up_required), browser `access.spec.ts`
 
 ## Phase 4, Organization and settings
 
