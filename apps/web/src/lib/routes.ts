@@ -12,7 +12,7 @@ export const routeMetaSchema = z.object({
   feature: z.string().optional(),
   stage: z.enum(['verify_two_factor', 'change_password', 'active']).optional(),
   group: z.string().optional(),
-  icon: z.enum(['home', 'user', 'activity', 'settings', 'users', 'shield']).optional(),
+  icon: z.enum(['home', 'user', 'activity', 'settings', 'users', 'shield', 'archive']).optional(),
   order: z.number().int().default(100),
   /** Shown in navigation (false for detail pages). */
   nav: z.boolean().default(true),
@@ -65,6 +65,14 @@ export const appRoutes = {
     permission: 'settings.read',
     group: 'Administration',
     order: 140,
+  }),
+  backups: defineRoute({
+    path: '/admin/backups',
+    title: 'Backups',
+    icon: 'archive',
+    permission: 'backups.read',
+    group: 'Administration',
+    order: 150,
   }),
   notifications: defineRoute({
     path: '/notifications',

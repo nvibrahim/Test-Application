@@ -3,6 +3,7 @@ import { APP_FILTER, DiscoveryModule } from '@nestjs/core';
 import { AccessModule } from './modules/access/access.module';
 import { AppearanceModule } from './modules/appearance/appearance.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BackupsModule } from './modules/backups/backups.module';
 import { PublicModule } from './modules/public/public.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TwoFactorModule } from './modules/two-factor/two-factor.module';
@@ -42,6 +43,7 @@ import { TransactionModule } from './platform/transaction/transaction.module';
     RealtimeModule,
     AppearanceModule,
     PublicModule,
+    BackupsModule,
     AccessModule,
     HealthModule,
   ],

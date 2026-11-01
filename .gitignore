@@ -13,3 +13,5 @@ test-results/
 src/generated/
 apps/api/src/generated/
 next-env.d.ts
+backups/
+backups-e2e/

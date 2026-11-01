@@ -39,4 +39,36 @@ export const scheduledJobRegistry: readonly ScheduledJobDefinition[] = [
   },
 ];
 
-export const scheduledJobKeys = scheduledJobRegistry.map((j) => j.key);
+/** Backup jobs: the nightly time comes from Settings -> Backups; the worker overrides the cron below. */
+export const backupScheduledJobs: readonly ScheduledJobDefinition[] = [
+  {
+    key: 'backup-nightly',
+    name: 'Nightly backup',
+    description: 'Encrypted database backup to the local and off-site targets.',
+    cron: '0 2 * * *',
+    inOrganizationTime: true,
+    catchUp: true,
+  },
+  {
+    key: 'backup-retention',
+    name: 'Backup retention',
+    description: 'Keeps the newest daily, weekly and monthly backups and removes the rest.',
+    cron: '30 4 * * *',
+    inOrganizationTime: true,
+    catchUp: true,
+  },
+  {
+    key: 'restore-drill',
+    name: 'Restore drill',
+    description: 'Restores the newest backup into a scratch database and checks it.',
+    cron: '0 5 * * 0',
+    inOrganizationTime: true,
+    catchUp: true,
+  },
+];
+
+export const allScheduledJobs: readonly ScheduledJobDefinition[] = [
+  ...scheduledJobRegistry,
+  ...backupScheduledJobs,
+];
+export const scheduledJobKeys = allScheduledJobs.map((j) => j.key);

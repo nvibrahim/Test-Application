@@ -2,6 +2,58 @@
 
 Each phase ends with an entry here. Dates are the day the phase was finished.
 
+## Phase 6: Backup and restore (1 November 2026)
+
+Built to `docs/runbooks/backup-and-restore.md`, which was written first and rehearsed last.
+
+### Added
+
+- Encrypted backups: `pg_dump -F c` streamed through AES-256-GCM to `BACKUP_DIR` with an 8-byte
+  magic, the key fingerprint and the nonce in front and the tag behind, plus a manifest beside
+  the file (app version, latest migration, checksum, size, row counts of four tables). Files are
+  written with mode 0600; a wrong or rotated key is reported from the fingerprint before any
+  restore starts.
+- Scheduled jobs `backup-nightly` (time from Settings → Backups, in organization time; pings a
+  Healthchecks-style URL on success), `backup-retention` (grandfather-father-son, 14 daily, 8
+  weekly, 12 monthly by default; also raises the "missed backup" notification once a day when
+  nothing completed in 26 hours) and `restore-drill` (weekly: newest backup into `<db>_drill`,
+  row counts compared with the manifest, dropped again; `restore_tested_at` recorded).
+- Off-site copies to any S3-compatible store (Backblaze B2, Cloudflare R2, Wasabi, MinIO, AWS).
+  Targets are checked against the store before they are saved and their configuration is
+  sealed with `AUTH_ENCRYPTION_KEY`; the secret is never returned.
+- Endpoints under `/backups`: list with status summary (`backups.read`), **Back up now**,
+  Verify (full drill of one backup), Download of the encrypted file and target management
+  (`backups.run`, step-up where it changes something), and **Restore** (reserved
+  `backups.restore`, step-up, the word RESTORE typed) which schedules the worker's restore:
+  verify, maintenance mode on, restore into `<db>_restore`, `prisma migrate deploy`, swap,
+  maintenance mode off, audit row. The previous database is kept as `<db>_old_<stamp>`.
+- `inspower backup run [--kind manual|pre_release] | list | verify <file|id> [--drill] | prune |
+restore <file|id> --confirm`.
+- Administration → Backups: last backup, last off-site copy and last drill cards, the list
+  with Download, Verify and Restore…, off-site targets with "Use for off-site copies". The
+  screen follows the worker live.
+- Health details gained `backup` (degraded when nothing completed in 26 hours) and `disk` (free
+  space where backups live; degraded under 10 %, down under 2 %).
+- Administrator notifications `backups.failed`, `backups.missed` and `backups.drill_failed`
+  are now raised, in the app and by email per Settings → Notifications.
+- The production image installs the PostgreSQL 17 client from the PGDG repository so
+  `pg_dump` matches the database service.
+
+### Fixed
+
+- Realtime: the Socket.IO path ended in a slash, which the web app's proxy answered with a
+  redirect, so browsers never received live events. The path has no trailing slash now and the
+  client starts with long-polling before upgrading, so it works through the web app alone as
+  well as behind Caddy.
+- Administrator notifications are produced by one plain function shared by the API, the worker
+  and the command line.
+
+### Rehearsed
+
+`inspower backup run`, `backup verify --drill` and `backup restore --confirm` against the
+browser-test database with the API and worker running: backup in 1.3 s, drill passed, restore
+swapped the database in 2.5 s, health answered ok afterwards without restarting anything.
+
 ## Phase 5, Theme, landing and mobile (1 November 2026)
 
 - **Theme engine** in the shared package: one brand colour and the Appearance choices produce

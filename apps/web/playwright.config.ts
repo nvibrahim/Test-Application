@@ -28,6 +28,8 @@ const env = {
     process.env['BACKUP_ENCRYPTION_KEY'] ?? Buffer.alloc(32, 0xe3).toString('base64'),
   SMTP_HOST: process.env['SMTP_HOST'] ?? '127.0.0.1',
   SMTP_PORT: process.env['SMTP_PORT'] ?? '1025',
+  BACKUP_DIR: process.env['BACKUP_DIR'] ?? path.join(root, 'apps/api/backups-e2e'),
+  PG_BIN_DIR: process.env['PG_BIN_DIR'] ?? '',
   LOG_LEVEL: 'warn',
   PORT: '3000',
   HOSTNAME: '127.0.0.1',

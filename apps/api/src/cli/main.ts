@@ -5,6 +5,7 @@ import { randomBytes } from 'node:crypto';
 import { loadEnv, InvalidEnvironmentError } from '../platform/config/config';
 import { createPrismaClient } from '../platform/database/prisma.service';
 import { adminCommand } from './admin';
+import { backupCommand } from './backup';
 
 /**
  * `pnpm inspower <command>`: the cross-platform command line that replaces scripts.
@@ -15,6 +16,10 @@ import { adminCommand } from './admin';
 const commands: Record<string, (args: string[]) => Promise<number>> = {
   admin(args) {
     return adminCommand(loadEnv(), args);
+  },
+
+  backup(args) {
+    return backupCommand(loadEnv(), args);
   },
 
   async version() {

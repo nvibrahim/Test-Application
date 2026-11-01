@@ -15,8 +15,11 @@ export function RealtimeRefresher() {
   useEffect(() => {
     const socket = io({
       path: `${API_BASE_PATH}/realtime`,
+      addTrailingSlash: false,
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      // Long-polling first: a WebSocket upgrade does not pass through the web app's own proxy
+      // (local development, browser tests); behind Caddy the connection upgrades afterwards.
+      transports: ['polling', 'websocket'],
       reconnectionDelayMax: 30_000,
     });
     let timer: ReturnType<typeof setTimeout> | null = null;

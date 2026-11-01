@@ -25,6 +25,8 @@ export const healthDetailsSchema = healthSchema.extend({
     redis: healthCheckSchema,
     worker: healthCheckSchema,
     mail: healthCheckSchema,
+    backup: healthCheckSchema.optional(),
+    disk: healthCheckSchema.optional(),
   }),
 });
 export type HealthDetails = z.infer<typeof healthDetailsSchema>;

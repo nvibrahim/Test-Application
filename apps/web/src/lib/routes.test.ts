@@ -17,6 +17,7 @@ describe('route metadata', () => {
       '/admin/organization',
       '/admin/locations',
       '/admin/settings',
+      '/admin/backups',
       '/health',
       '/profile',
     ]);

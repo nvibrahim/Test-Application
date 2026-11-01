@@ -21,6 +21,7 @@ import { TransactionService } from '../../platform/transaction/transaction.servi
 import type { AuthContext } from '../access/request-context';
 import { ctxOf } from '../auth/credentials.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { BackupsService } from '../backups/backups.service';
 import { OrganizationService } from '../organization/organization.service';
 import { SettingsReader } from './settings-reader';
 
@@ -37,6 +38,7 @@ export class SettingsService {
     private readonly transactions: TransactionService,
     private readonly organizations: OrganizationService,
     private readonly notifications: NotificationsService,
+    private readonly backups: BackupsService,
   ) {
     this.key = effectiveKey(env, 'AUTH_ENCRYPTION_KEY');
   }
@@ -177,6 +179,11 @@ export class SettingsService {
       }
     });
     await this.reader.invalidate(auth.organizationId, section);
+    if (section === 'backups') {
+      await this.backups
+        .applySchedule(auth.organizationId, String(value['nightlyAt']))
+        .catch(() => undefined);
+    }
     return this.read(auth.organizationId, section);
   }
 

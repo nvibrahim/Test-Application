@@ -19,6 +19,8 @@ const labels: Record<keyof HealthDetails['checks'], string> = {
   redis: 'Cache and queues',
   worker: 'Background worker',
   mail: 'Mail server',
+  backup: 'Last backup',
+  disk: 'Disk space for backups',
 };
 
 function StatusBadge({ status }: { status: HealthCheck['status'] }) {
@@ -68,6 +70,7 @@ export async function HealthCard({ cookie }: { cookie?: string }) {
           <ul className="divide-y">
             {(Object.keys(labels) as (keyof typeof labels)[]).map((key) => {
               const check = details.checks[key];
+              if (!check) return null;
               return (
                 <li key={key} className="flex items-center justify-between gap-3 py-3 text-sm">
                   <div>

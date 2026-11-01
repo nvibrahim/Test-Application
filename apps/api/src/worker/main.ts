@@ -12,6 +12,7 @@ import {
 import { createLogger } from '../platform/logging/logger';
 import { OUTBOX_CHANNEL } from '../platform/outbox/outbox';
 import { createRedis } from '../platform/redis/redis.service';
+import { backupProcessor } from './backup.processor';
 import { emailProcessor } from './email.processor';
 import { maintenanceProcessor, registerSchedules } from './scheduler';
 
@@ -85,6 +86,7 @@ async function main(): Promise<void> {
   const sendEmail = emailProcessor(env, prisma, logger);
   const emailQueue = new Queue('email', { connection, prefix: `${env.REDIS_PREFIX}:bull` });
   const runMaintenance = maintenanceProcessor(env, prisma, emailQueue, logger);
+  const runBackupJob = backupProcessor(env, prisma, emailQueue, redis, logger);
   const workers = QUEUES.map(
     (name) =>
       new Worker(
@@ -92,9 +94,10 @@ async function main(): Promise<void> {
         async (job) => {
           if (name === 'email') return sendEmail(job);
           if (name === 'maintenance') return runMaintenance(job as never);
+          if (name === 'backup') return runBackupJob(job as never);
           logger.info({ queue: name, job: job.name, id: job.id }, 'no processor for this job yet');
         },
-        { connection, prefix: `${env.REDIS_PREFIX}:bull`, concurrency: 2 },
+        { connection, prefix: `${env.REDIS_PREFIX}:bull`, concurrency: name === 'backup' ? 1 : 2 },
       ),
   );
 

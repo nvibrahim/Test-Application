@@ -37,6 +37,9 @@ export const envSchema = z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
     STORAGE_DIR: z.string().default('./storage'),
+    BACKUP_DIR: z.string().default('./backups'),
+    /** Folder holding pg_dump and pg_restore; empty means PATH. */
+    PG_BIN_DIR: z.string().default(''),
   })
   .superRefine((env, ctx) => {
     const local = env.NODE_ENV !== 'production';

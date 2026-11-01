@@ -53,7 +53,7 @@ describe('appearance', () => {
     expect(res.body.css).toBe('');
     expect(res.body.theme.brand).toBe('#1d4ed8');
     const etag = res.headers['etag'];
-    const again = await owner.agent.get('/api/v1/appearance').set('If-None-Match', etag);
+    const again = await owner.agent.get('/api/v1/appearance').set('If-None-Match', String(etag));
     expect(again.status).toBe(304);
   });
 
@@ -122,6 +122,9 @@ describe('appearance', () => {
 describe('the public contact form', () => {
   it('is off until a support email is set, then emails support, keeps nothing but an audit row, ignores bots and limits per address', async () => {
     const anon = await new Client(app).init();
+    const auditBefore = await prisma.auditLog.count({
+      where: { action: 'public.contact.submitted' },
+    });
     const off = await anon.post('/public/contact', {
       name: 'Vis Itor',
       email: 'vis@example.test',
@@ -140,7 +143,9 @@ describe('the public contact form', () => {
     expect(ok.status).toBe(202);
     const mail = await prisma.emailLog.findFirst({ where: { template: 'contact-message' } });
     expect(mail?.toAddress).toBe('help@northwind.test');
-    expect(await prisma.auditLog.count({ where: { action: 'public.contact.submitted' } })).toBe(1);
+    expect(await prisma.auditLog.count({ where: { action: 'public.contact.submitted' } })).toBe(
+      auditBefore + 1,
+    );
     const bot = await anon.post('/public/contact', {
       name: 'Bot',
       email: 'bot@example.test',

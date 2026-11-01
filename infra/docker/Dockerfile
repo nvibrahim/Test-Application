@@ -34,7 +34,11 @@ RUN pnpm --filter @inspower/api --prod deploy --legacy /out/api
 FROM ${NODE_IMAGE} AS runtime
 ARG VERSION=dev
 ENV NODE_ENV=production APP_VERSION=${VERSION} NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
-RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client ca-certificates tini \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl gnupg tini \
+ && install -d /usr/share/postgresql-common/pgdg \
+ && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+ && echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
+ && apt-get update && apt-get install -y --no-install-recommends postgresql-client-17 \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --system app && useradd --system --gid app --home /app app
 WORKDIR /app

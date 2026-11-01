@@ -79,20 +79,20 @@ Phase 0 items are already covered.
 
 ## Phase 6, Backup and restore
 
-- [ ] `pg_dump -F c` plus a manifest (version, migration id, timestamp, checksum, key fingerprint), AES-256-GCM streamed with a fresh nonce per file
-- [ ] A rotated key is detected from the fingerprint before a restore fails
-- [ ] Targets behind one adapter (`local` always; `s3` optional); retention 14 daily / 8 weekly / 12 monthly per target
-- [ ] Nightly job at 02:00 organization time; "Back up now" needs step-up and is audited; pre-release backup from the release command
-- [ ] Restore from the CLI stops the app, restores into a fresh database, migrates forward if older, swaps and health-checks; in-app restore only schedules with a typed confirmation
-- [ ] Weekly restore drill restores the latest backup into a scratch database, checks row counts, records `restore_tested_at`, notifies on failure
-- [ ] A missed backup raises an admin notification
+- [x] `pg_dump -F c` plus a manifest (version, migration id, timestamp, checksum, key fingerprint), AES-256-GCM streamed with a fresh nonce per file — `backup-file.spec.ts`, `backups.e2e-spec.ts`
+- [x] A rotated key is detected from the fingerprint before a restore fails — `backup-file.spec.ts` (WrongBackupKeyError)
+- [x] Targets behind one adapter (`local` always; `s3` optional); retention 14 daily / 8 weekly / 12 monthly per target — `retention.spec.ts`, `backups.e2e-spec.ts` (retention, targets)
+- [x] Nightly job at 02:00 organization time; "Back up now" needs step-up and is audited; pre-release backup from the release command (`backup run --kind pre_release`; the release command arrives in Phase 7) — `tasks.spec.ts`, `backups.spec.ts`
+- [x] Restore from the CLI stops the app, restores into a fresh database, migrates forward if older, swaps and health-checks; in-app restore only schedules with a typed confirmation — rehearsal in the runbook, `backups.e2e-spec.ts` (restore 403/400/202), `backups.spec.ts`
+- [x] Weekly restore drill restores the latest backup into a scratch database, checks row counts, records `restore_tested_at`, notifies on failure — `backups.e2e-spec.ts` (drill), `backups.spec.ts` (Verify)
+- [x] A missed backup raises an admin notification — `checkMissed` in the retention job; health `backup` check degraded
 
 ## Phase 7, Operations
 
 - [ ] Scheduled jobs: declared in code, never run twice at once, "catch up" runs once after the worker was off, pause/resume/run now audited and live
 - [ ] Background jobs: live counts, history with retry/cancel/remove, each audited; Bull Board behind admin auth on the web app's origin
 - [ ] Audit log screen filters by actor, action, entity and date; CSV export needs step-up and is itself audited
-- [ ] Health details: database, Redis, worker heartbeat, mail, disk, last backup
+- [x] Health details: database, Redis, worker heartbeat, mail, disk, last backup — Phase 6, `backups.spec.ts` (dashboard)
 - [ ] Release: version `YYYY.MM.DD-<sha>`, pre-release backup, migrate, restart, health check, automatic rollback; demo client first; migrations are add-only within one release
 
 ## Phase 8, Hardening

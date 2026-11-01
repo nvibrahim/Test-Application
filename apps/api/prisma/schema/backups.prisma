@@ -46,6 +46,9 @@ model Backup {
   startedAt                DateTime     @default(now()) @map("started_at") @db.Timestamptz(6)
   finishedAt               DateTime?    @map("finished_at") @db.Timestamptz(6)
   restoreTestedAt          DateTime?    @map("restore_tested_at") @db.Timestamptz(6)
+  offsiteCopiedAt          DateTime?    @map("offsite_copied_at") @db.Timestamptz(6)
+  offsiteError             String?      @map("offsite_error")
+  rowCounts                Json?        @map("row_counts")
   error                    String?
   startedBy                String?      @map("started_by") @db.Uuid
 

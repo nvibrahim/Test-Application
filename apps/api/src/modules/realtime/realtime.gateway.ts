@@ -37,6 +37,8 @@ export class RealtimeGateway implements OnModuleDestroy {
     const httpServer = this.adapterHost.httpAdapter.getHttpServer();
     this.io = new Server(httpServer, {
       path: `${API_BASE_PATH}/realtime`,
+      // No trailing slash: the web app's proxy would otherwise answer with a redirect.
+      addTrailingSlash: false,
       cors: { origin: this.env.WEB_ORIGIN, credentials: true },
       pingInterval: 25_000,
       pingTimeout: 60_000,

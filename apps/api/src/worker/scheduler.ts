@@ -1,5 +1,7 @@
 import { Queue, type Job } from 'bullmq';
-import { scheduledJobRegistry } from '@inspower/shared';
+import { allScheduledJobs } from '@inspower/shared';
+import { readBackupSettings } from '../modules/backups/engine';
+import { nightlyCron } from '../modules/backups/retention';
 import type { PrismaClient } from '../generated/prisma/client';
 import type { Env } from '../platform/config/config';
 import type { Logger } from '../platform/logging/logger';
@@ -16,11 +18,14 @@ export async function registerSchedules(
   logger: Logger,
 ): Promise<void> {
   const org = await prisma.organization.findFirst({ select: { id: true, timeZone: true } });
-  for (const job of scheduledJobRegistry) {
+  const backups = org ? await readBackupSettings(prisma, org.id) : null;
+  for (const job of allScheduledJobs) {
     const tz = job.inOrganizationTime && org?.timeZone ? org.timeZone : 'UTC';
+    const pattern =
+      job.key === 'backup-nightly' && backups ? nightlyCron(backups.nightlyAt) : job.cron;
     await queue.upsertJobScheduler(
       job.key,
-      { pattern: job.cron, tz },
+      { pattern, tz },
       { name: job.key, data: { key: job.key }, opts: { removeOnComplete: 100, removeOnFail: 100 } },
     );
     if (org) {
@@ -31,7 +36,7 @@ export async function registerSchedules(
       });
     }
   }
-  logger.info({ jobs: scheduledJobRegistry.map((j) => j.key) }, 'schedules registered');
+  logger.info({ jobs: allScheduledJobs.map((j) => j.key) }, 'schedules registered');
 }
 
 export function maintenanceProcessor(

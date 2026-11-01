@@ -1,4 +1,13 @@
-import { Activity, Home, Settings, Shield, User, Users, type LucideProps } from 'lucide-react';
+import {
+  Activity,
+  Archive,
+  Home,
+  Settings,
+  Shield,
+  User,
+  Users,
+  type LucideProps,
+} from 'lucide-react';
 import type { RouteMeta } from '@/lib/routes';
 
 const icons = {
@@ -8,6 +17,7 @@ const icons = {
   settings: Settings,
   users: Users,
   shield: Shield,
+  archive: Archive,
 } as const;
 
 export function RouteIcon({ icon, ...props }: { icon: RouteMeta['icon'] } & LucideProps) {

@@ -5,6 +5,7 @@ import type { Logger } from '../../platform/logging/logger';
 import { outboxCleanup } from './outbox-cleanup';
 import { retentionCleanup } from './retention-cleanup';
 import { twoFactorReminder } from './two-factor-reminder';
+import { backupNightly, backupRetention, restoreDrill } from './backups';
 
 export interface MaintenanceContext {
   env: Env;
@@ -17,9 +18,12 @@ export interface MaintenanceContext {
 
 export type MaintenanceTask = (ctx: MaintenanceContext) => Promise<string>;
 
-/** One task per entry in the shared `scheduledJobRegistry`. Adding a job: a registry entry plus a task here. */
+/** One task per entry in the shared `allScheduledJobs`. Adding a job: a registry entry plus a task here. */
 export const maintenanceTasks: Record<string, MaintenanceTask> = {
   'outbox-cleanup': outboxCleanup,
   'retention-cleanup': retentionCleanup,
   'two-factor-reminder': twoFactorReminder,
+  'backup-nightly': backupNightly,
+  'backup-retention': backupRetention,
+  'restore-drill': restoreDrill,
 };

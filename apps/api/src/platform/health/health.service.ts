@@ -1,3 +1,5 @@
+import { statfs } from 'node:fs/promises';
+import path from 'node:path';
 import { Inject, Injectable } from '@nestjs/common';
 import { type Health, type HealthCheck, type HealthDetails, overallStatus } from '@inspower/shared';
 import type { Env } from '../config/config';
@@ -67,19 +69,63 @@ export class HealthService {
     };
   }
 
+  /** The newest completed backup; degraded when none in 26 hours for an organization older than that. */
+  private async backup(): Promise<HealthCheck> {
+    try {
+      const org = await this.prisma.organization.findFirst({
+        select: { id: true, createdAt: true },
+      });
+      if (!org) return { status: 'ok', detail: 'No organization yet' };
+      const last = await this.prisma.backup.findFirst({
+        where: { organizationId: org.id, status: 'completed' },
+        orderBy: { finishedAt: 'desc' },
+        select: { finishedAt: true },
+      });
+      const limit = Date.now() - 26 * 3_600_000;
+      const detail = last?.finishedAt
+        ? `Last backup ${last.finishedAt.toISOString()}`
+        : 'No backup has completed yet';
+      if (org.createdAt.getTime() >= limit) return { status: 'ok', detail };
+      if (!last?.finishedAt || last.finishedAt.getTime() < limit)
+        return { status: 'degraded', detail };
+      return { status: 'ok', detail };
+    } catch (error) {
+      return { status: 'down', detail: error instanceof Error ? error.message : String(error) };
+    }
+  }
+
+  /** Free space where backups are written: degraded under 10 %, down under 2 %. */
+  private async disk(): Promise<HealthCheck> {
+    try {
+      const dir = path.resolve(this.env.BACKUP_DIR);
+      const fs = await statfs(dir).catch(() => statfs(path.dirname(dir)));
+      const total = Number(fs.blocks) * Number(fs.bsize);
+      const free = Number(fs.bavail) * Number(fs.bsize);
+      const pct = total ? Math.round((free / total) * 100) : 100;
+      const detail = `${(free / 1_073_741_824).toFixed(1)} GiB free (${pct} %)`;
+      if (pct < 2) return { status: 'down', detail };
+      if (pct < 10) return { status: 'degraded', detail };
+      return { status: 'ok', detail };
+    } catch (error) {
+      return { status: 'degraded', detail: error instanceof Error ? error.message : String(error) };
+    }
+  }
+
   /** Admin only (guarded from Phase 3): every dependency. */
   async details(): Promise<HealthDetails> {
-    const [database, redis, worker, mail] = await Promise.all([
+    const [database, redis, worker, mail, backup, disk] = await Promise.all([
       this.database(),
       this.cache(),
       this.worker(),
       this.mailServer(),
+      this.backup(),
+      this.disk(),
     ]);
     return {
-      status: overallStatus([database, redis, worker, mail]),
+      status: overallStatus([database, redis, worker, mail, backup, disk]),
       version: this.env.APP_VERSION,
       time: new Date().toISOString(),
-      checks: { database, redis, worker, mail },
+      checks: { database, redis, worker, mail, backup, disk },
     };
   }
 }

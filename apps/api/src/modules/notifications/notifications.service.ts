@@ -1,20 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Request } from 'express';
-import {
-  notificationSettingsSchema,
-  notificationTypes,
-  SUPER_ADMIN_ROLE_KEY,
-  type AdminEventKey,
-} from '@inspower/shared';
+import { notificationTypes, type AdminEventKey } from '@inspower/shared';
 import type { Env } from '../../platform/config/config';
 import { ENV } from '../../platform/config/config.module';
 import { PrismaService, type Tx } from '../../platform/database/prisma.service';
-import { enqueueEmail } from '../../platform/jobs/email-queue';
 import { QueueService } from '../../platform/jobs/queue.service';
 import { TransactionService } from '../../platform/transaction/transaction.service';
 import type { AuthContext } from '../access/request-context';
 import { ctxOf } from '../auth/credentials.service';
 import { SettingsReader } from '../settings/settings-reader';
+import { notifyAdministrators } from '../backups/admin-notify';
 
 interface NotifyInput {
   organizationId: string;
@@ -78,58 +73,17 @@ export class NotificationsService {
   }
 
   /** Administrators: everyone with notifications.manage or the Super Admin; email per Settings -> Notifications. */
-  async notifyAdmins(
+  notifyAdmins(
     tx: Tx,
     organizationId: string,
     input: Omit<NotifyInput, 'organizationId' | 'userId'> & { adminEvent: AdminEventKey },
   ): Promise<void> {
-    const admins = await tx.user.findMany({
-      where: {
-        organizationId,
-        status: 'active',
-        roles: {
-          some: {
-            role: {
-              OR: [
-                { key: SUPER_ADMIN_ROLE_KEY },
-                { permissions: { some: { permissionKey: 'notifications.manage' } } },
-              ],
-            },
-          },
-        },
-      },
-      select: { id: true, email: true, fullName: true },
-    });
-    for (const a of admins)
-      await this.notify(tx, {
-        organizationId,
-        userId: a.id,
-        type: input.type,
-        title: input.title,
-        body: input.body,
-        link: input.link,
-      });
-    const settings = await this.settings.read(
+    return notifyAdministrators(
+      tx,
+      { env: this.env, emailQueue: this.queue.queue('email') },
       organizationId,
-      'notifications',
-      notificationSettingsSchema,
+      input,
     );
-    if (!settings.emailAdminsOn.includes(input.adminEvent)) return;
-    const recipients = new Set<string>([
-      ...admins.map((a) => a.email),
-      ...settings.extraRecipients,
-    ]);
-    for (const to of recipients) {
-      await enqueueEmail(tx, this.queue.queue('email'), organizationId, to, {
-        name: 'admin-event',
-        params: {
-          appName: this.env.APP_NAME,
-          title: input.title,
-          body: input.body ?? '',
-          link: input.link ? `${this.env.WEB_ORIGIN}${input.link}` : this.env.WEB_ORIGIN,
-        },
-      });
-    }
   }
 
   async list(auth: AuthContext, cursor: string | undefined, unreadOnly: boolean) {
