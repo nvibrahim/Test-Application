@@ -1,0 +1,20 @@
+/// Append-only: a database trigger refuses UPDATE and DELETE (see the first migration).
+model AuditLog {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  action         String
+  actorId        String?  @map("actor_id") @db.Uuid
+  entityType     String   @map("entity_type")
+  entityId       String?  @map("entity_id")
+  changes        Json?
+  ip             String?
+  userAgent      String?  @map("user_agent")
+  requestId      String?  @map("request_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@map("audit_logs")
+}

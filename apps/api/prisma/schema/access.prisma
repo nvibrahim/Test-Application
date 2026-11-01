@@ -1,0 +1,48 @@
+model Role {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  key            String
+  name           String
+  description    String?
+  /// Built in (super_admin, administrator, member, viewer); cannot be deleted
+  isSystem       Boolean  @default(false) @map("is_system")
+  /// A built-in role whose default permissions were edited
+  isCustomised   Boolean  @default(false) @map("is_customised")
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy      String?  @map("created_by") @db.Uuid
+  updatedBy      String?  @map("updated_by") @db.Uuid
+
+  permissions RolePermission[]
+  userRoles   UserRole[]
+
+  @@unique([organizationId, key])
+  @@map("roles")
+}
+
+model Permission {
+  key            String  @id
+  module         String
+  label          String
+  description    String
+  superAdminOnly Boolean @default(false) @map("super_admin_only")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId        String @map("role_id") @db.Uuid
+  permissionKey String @map("permission_key")
+  organizationId String @map("organization_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
+
+  @@id([roleId, permissionKey])
+  @@map("role_permissions")
+}

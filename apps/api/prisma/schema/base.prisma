@@ -1,0 +1,15 @@
+// Inspower Core database. One PostgreSQL database per organization; every table still
+// carries organization_id so a shared-database mode can be added later with row-level
+// security rather than a rewrite. Conventions: UUID v7 ids, timestamptz in UTC,
+// created_at / updated_at on every mutable table, `version` for optimistic locking.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/prisma"
+  runtime  = "nodejs"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}

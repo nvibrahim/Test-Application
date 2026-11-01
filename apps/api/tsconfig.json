@@ -1,0 +1,8 @@
+{
+  "extends": "@inspower/config-typescript/nest.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "prisma.config.ts"]
+}

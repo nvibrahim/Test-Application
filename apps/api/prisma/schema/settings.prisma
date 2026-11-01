@@ -1,0 +1,30 @@
+model AppSetting {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  section        String
+  key            String
+  value          Json
+  /// The shape version of `value`; the Zod schema for the section migrates older shapes
+  version        Int      @default(1)
+  isSecret       Boolean  @default(false) @map("is_secret")
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?  @map("updated_by") @db.Uuid
+
+  @@unique([organizationId, section, key])
+  @@map("app_settings")
+}
+
+model BrandAsset {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  /// logo_light, logo_dark, favicon, sign_in_image
+  slot           String
+  contentType    String   @map("content_type")
+  sizeBytes      Int      @map("size_bytes")
+  content        Bytes
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?  @map("updated_by") @db.Uuid
+
+  @@unique([organizationId, slot])
+  @@map("brand_assets")
+}

@@ -1,0 +1,56 @@
+enum BackupKind {
+  scheduled
+  manual
+  pre_release
+
+  @@map("backup_kind")
+}
+
+enum BackupStatus {
+  running
+  completed
+  failed
+
+  @@map("backup_status")
+}
+
+model BackupTarget {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  /// local, s3, onedrive
+  kind            String
+  name            String
+  configEncrypted String?  @map("config_encrypted")
+  keyFingerprint  String?  @map("key_fingerprint")
+  isEnabled       Boolean  @default(true) @map("is_enabled")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  backups Backup[]
+
+  @@map("backup_targets")
+}
+
+model Backup {
+  id                       String       @id @default(uuid(7)) @db.Uuid
+  organizationId           String       @map("organization_id") @db.Uuid
+  kind                     BackupKind
+  status                   BackupStatus @default(running)
+  targetId                 String?      @map("target_id") @db.Uuid
+  fileName                 String?      @map("file_name")
+  sizeBytes                BigInt?      @map("size_bytes")
+  checksum                 String?
+  encryptionKeyFingerprint String?      @map("encryption_key_fingerprint")
+  appVersion               String?      @map("app_version")
+  migrationId              String?      @map("migration_id")
+  startedAt                DateTime     @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt               DateTime?    @map("finished_at") @db.Timestamptz(6)
+  restoreTestedAt          DateTime?    @map("restore_tested_at") @db.Timestamptz(6)
+  error                    String?
+  startedBy                String?      @map("started_by") @db.Uuid
+
+  target BackupTarget? @relation(fields: [targetId], references: [id])
+
+  @@index([organizationId, startedAt(sort: Desc)])
+  @@map("backups")
+}

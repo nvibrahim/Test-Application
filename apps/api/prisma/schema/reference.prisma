@@ -1,0 +1,17 @@
+model Country {
+  code         String @id @db.Char(2)
+  name         String
+  currencyCode String? @map("currency_code") @db.Char(3)
+  callingCode  String? @map("calling_code")
+
+  @@map("countries")
+}
+
+model Currency {
+  code          String @id @db.Char(3)
+  name          String
+  symbol        String?
+  decimalDigits Int    @default(2) @map("decimal_digits")
+
+  @@map("currencies")
+}
