@@ -1,0 +1,16 @@
+export const TwoFactorActions = {
+  setupStarted: 'auth.two_factor.setup_started',
+  enabled: 'auth.two_factor.enabled',
+  disabled: 'auth.two_factor.disabled',
+  verified: 'auth.two_factor.verified',
+  verifyFailed: 'auth.two_factor.verify_failed',
+  recoveryCodeUsed: 'auth.two_factor.recovery_code_used',
+  recoveryCodesRegenerated: 'auth.two_factor.recovery_codes_regenerated',
+  trustedDeviceAdded: 'auth.trusted_device.added',
+  trustedDeviceRevoked: 'auth.trusted_device.revoked',
+  stepUpVerified: 'auth.step_up.verified',
+  stepUpFailed: 'auth.step_up.failed',
+  reminderDismissed: 'auth.two_factor.reminder_dismissed',
+  reminderSent: 'auth.two_factor.reminder_sent',
+  adminReset: 'users.two_factor.reset',
+} as const;

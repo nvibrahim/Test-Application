@@ -19,6 +19,20 @@ export type EmailTemplate =
       name: 'new-device-sign-in';
       params: { appName: string; fullName: string; device: string; ip: string; when: string };
     }
+  | { name: 'two-factor-enabled'; params: { appName: string; fullName: string; when: string } }
+  | { name: 'two-factor-disabled'; params: { appName: string; fullName: string; when: string } }
+  | {
+      name: 'two-factor-reset-by-admin';
+      params: { appName: string; fullName: string; when: string };
+    }
+  | {
+      name: 'recovery-code-used';
+      params: { appName: string; fullName: string; when: string; left: number };
+    }
+  | {
+      name: 'two-factor-reminder';
+      params: { appName: string; fullName: string; link: string; day: number };
+    }
   | { name: 'test'; params: { appName: string } };
 
 export type EmailTemplateName = EmailTemplate['name'];
@@ -104,6 +118,70 @@ export function renderEmail(template: EmailTemplate): RenderedEmail {
           `A new sign-in happened on ${escapeHtml(when)} from ${escapeHtml(device)} (${escapeHtml(ip)}).`,
           'If this was you, nothing to do. If not, change your password now and sign out other sessions from Profile → Security.',
         ]),
+      };
+    }
+    case 'two-factor-enabled': {
+      const { appName, fullName, when } = template.params;
+      return {
+        subject: `Two-step verification is on for your ${appName} account`,
+        text: `Hello ${fullName},\n\nTwo-step verification was turned on for your account on ${when}. Keep your recovery codes somewhere safe.\n\nIf this was not you, sign in and check Profile → Security straight away.`,
+        html: layout(appName, 'Two-step verification is on', [
+          `Hello ${escapeHtml(fullName)},`,
+          `Two-step verification was turned on for your account on ${escapeHtml(when)}. Keep your recovery codes somewhere safe.`,
+          'If this was not you, sign in and check Profile → Security straight away.',
+        ]),
+      };
+    }
+    case 'two-factor-disabled': {
+      const { appName, fullName, when } = template.params;
+      return {
+        subject: `Two-step verification was turned off for your ${appName} account`,
+        text: `Hello ${fullName},\n\nTwo-step verification was turned off on ${when}. Your account is now protected by your password alone.\n\nIf this was not you, change your password now and turn it back on.`,
+        html: layout(appName, 'Two-step verification is off', [
+          `Hello ${escapeHtml(fullName)},`,
+          `Two-step verification was turned off on ${escapeHtml(when)}. Your account is now protected by your password alone.`,
+          'If this was not you, change your password now and turn it back on.',
+        ]),
+      };
+    }
+    case 'two-factor-reset-by-admin': {
+      const { appName, fullName, when } = template.params;
+      return {
+        subject: `An administrator reset two-step verification on your ${appName} account`,
+        text: `Hello ${fullName},\n\nAn administrator removed two-step verification from your account on ${when}, usually because of a lost phone. Sign in with your password and set it up again from Profile → Security.`,
+        html: layout(appName, 'Two-step verification was reset', [
+          `Hello ${escapeHtml(fullName)},`,
+          `An administrator removed two-step verification from your account on ${escapeHtml(when)}, usually because of a lost phone.`,
+          'Sign in with your password and set it up again from Profile → Security.',
+        ]),
+      };
+    }
+    case 'recovery-code-used': {
+      const { appName, fullName, when, left } = template.params;
+      return {
+        subject: `A recovery code was used on your ${appName} account`,
+        text: `Hello ${fullName},\n\nA recovery code was used to sign in on ${when}. You have ${left} left.\n\nIf this was not you, change your password and make new recovery codes now.`,
+        html: layout(appName, 'A recovery code was used', [
+          `Hello ${escapeHtml(fullName)},`,
+          `A recovery code was used to sign in on ${escapeHtml(when)}. You have ${left} left.`,
+          'If this was not you, change your password and make new recovery codes now.',
+        ]),
+      };
+    }
+    case 'two-factor-reminder': {
+      const { appName, fullName, link, day } = template.params;
+      return {
+        subject: `Protect your ${appName} account with two-step verification`,
+        text: `Hello ${fullName},\n\nYour account has been open for ${day} day${day === 1 ? '' : 's'} without two-step verification. It takes two minutes with an authenticator app:\n${link}`,
+        html: layout(
+          appName,
+          'Protect your account',
+          [
+            `Hello ${escapeHtml(fullName)},`,
+            `Your account has been open for ${day} day${day === 1 ? '' : 's'} without two-step verification. It takes two minutes with an authenticator app on your phone.`,
+          ],
+          { text: 'Set up two-step verification', link },
+        ),
       };
     }
     case 'test': {

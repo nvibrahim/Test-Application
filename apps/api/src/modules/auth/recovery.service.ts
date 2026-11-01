@@ -6,7 +6,6 @@ import { hashToken, newToken } from '../../platform/crypto/crypto';
 import { PrismaService } from '../../platform/database/prisma.service';
 import { ApiException } from '../../platform/http/api-error';
 import { QueueService } from '../../platform/jobs/queue.service';
-import { renderEmail } from '../../platform/mail/templates';
 import { TransactionService } from '../../platform/transaction/transaction.service';
 import { clientIp, userAgentOf } from '../access/request-context';
 import { OrganizationService } from '../organization/organization.service';
@@ -76,7 +75,7 @@ export class RecoveryService {
         minutes: RESET_LINK_MINUTES,
       },
     };
-    await this.queue.sendEmail(organizationId, user.email, template, renderEmail(template).subject);
+    await this.queue.sendEmail(organizationId, user.email, template);
   }
 
   /** Single use, 30 minutes; every session is signed out and the lock is cleared. */
@@ -153,11 +152,6 @@ export class RecoveryService {
         when: new Date().toUTCString(),
       },
     };
-    await this.queue.sendEmail(
-      row.organizationId,
-      row.user.email,
-      template,
-      renderEmail(template).subject,
-    );
+    await this.queue.sendEmail(row.organizationId, row.user.email, template);
   }
 }

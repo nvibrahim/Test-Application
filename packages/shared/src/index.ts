@@ -7,3 +7,5 @@ export * from './permissions/index.js';
 export * from './password-policy.js';
 export * from './settings/security.js';
 export * from './auth.js';
+export * from './two-factor.js';
+export * from './scheduler.js';

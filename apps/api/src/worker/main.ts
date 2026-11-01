@@ -13,6 +13,7 @@ import { createLogger } from '../platform/logging/logger';
 import { OUTBOX_CHANNEL } from '../platform/outbox/outbox';
 import { createRedis } from '../platform/redis/redis.service';
 import { emailProcessor } from './email.processor';
+import { maintenanceProcessor, registerSchedules } from './scheduler';
 
 export const QUEUES = ['email', 'maintenance', 'backup', 'exports'] as const;
 export type QueueName = (typeof QUEUES)[number];
@@ -82,17 +83,26 @@ async function main(): Promise<void> {
     (name) => new Queue(name, { connection, prefix: `${env.REDIS_PREFIX}:bull` }),
   );
   const sendEmail = emailProcessor(env, prisma, logger);
+  const emailQueue = new Queue('email', { connection, prefix: `${env.REDIS_PREFIX}:bull` });
+  const runMaintenance = maintenanceProcessor(env, prisma, emailQueue, logger);
   const workers = QUEUES.map(
     (name) =>
       new Worker(
         name,
         async (job) => {
           if (name === 'email') return sendEmail(job);
+          if (name === 'maintenance') return runMaintenance(job as never);
           logger.info({ queue: name, job: job.name, id: job.id }, 'no processor for this job yet');
         },
         { connection, prefix: `${env.REDIS_PREFIX}:bull`, concurrency: 2 },
       ),
   );
+
+  const maintenance = queues.find((q) => q.name === 'maintenance');
+  if (maintenance)
+    await registerSchedules(maintenance, prisma, logger).catch((err) =>
+      logger.warn({ err }, 'could not register schedules'),
+    );
 
   logger.info({ queues: QUEUES }, 'worker started');
 
@@ -102,6 +112,7 @@ async function main(): Promise<void> {
     clearInterval(outbox);
     await Promise.all(workers.map((w) => w.close()));
     await Promise.all(queues.map((q) => q.close()));
+    await emailQueue.close();
     await redis.del(WORKER_HEARTBEAT_KEY).catch(() => undefined);
     await Promise.all([
       redis.quit(),

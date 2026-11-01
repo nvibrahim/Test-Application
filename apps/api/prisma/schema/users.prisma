@@ -56,6 +56,10 @@ model UserPreferences {
   dateFormat        String?  @map("date_format")
   defaultLocationId String?  @map("default_location_id") @db.Uuid
   sidebarCollapsed  Boolean  @default(false) @map("sidebar_collapsed")
+  /// The two-step verification reminder banner: when it was last dismissed
+  twoFactorReminderDismissedAt DateTime? @map("two_factor_reminder_dismissed_at") @db.Timestamptz(6)
+  /// Which reminder emails (day 1, 7, 30) have gone, each once
+  twoFactorRemindersSent Int[] @default([]) @map("two_factor_reminders_sent")
   updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

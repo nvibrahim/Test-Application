@@ -1,4 +1,5 @@
 import { systemPermissions } from './system.js';
+import { usersPermissions } from './users.js';
 
 /**
  * The permission registry. Keys are `resource.action`; the core targets 25-40 keys.
@@ -14,7 +15,10 @@ export interface PermissionDefinition {
   superAdminOnly?: boolean;
 }
 
-export const permissionRegistry: readonly PermissionDefinition[] = [...systemPermissions];
+export const permissionRegistry: readonly PermissionDefinition[] = [
+  ...systemPermissions,
+  ...usersPermissions,
+];
 
 export const permissionKeys = permissionRegistry.map((p) => p.key);
 

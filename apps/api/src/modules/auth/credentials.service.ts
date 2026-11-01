@@ -1,18 +1,12 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 import { Inject, Injectable } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import {
-  DEFAULT_APP_NAME,
-  type SessionStage,
-  type SignInRequest,
-  type SignInResponse,
-} from '@inspower/shared';
+import { type SessionStage, type SignInRequest, type SignInResponse } from '@inspower/shared';
 import type { Env } from '../../platform/config/config';
 import { ENV } from '../../platform/config/config.module';
 import { PrismaService } from '../../platform/database/prisma.service';
 import { ApiException } from '../../platform/http/api-error';
 import { QueueService } from '../../platform/jobs/queue.service';
-import { renderEmail } from '../../platform/mail/templates';
 import { TransactionService } from '../../platform/transaction/transaction.service';
 import { type AuthContext, clientIp, userAgentOf } from '../access/request-context';
 import { OrganizationService } from '../organization/organization.service';
@@ -21,6 +15,9 @@ import { PasswordsService } from './passwords.service';
 import { SecuritySettingsService } from './security-settings';
 import { SessionsService } from './sessions.service';
 import { ThrottleService } from './throttle.service';
+import { trustedTokenFrom } from '../two-factor/trusted-cookie';
+import { hashToken } from '../../platform/crypto/crypto';
+import { deviceLabel } from './sessions.service';
 
 @Injectable()
 export class CredentialsService {
@@ -102,27 +99,14 @@ export class CredentialsService {
             });
           },
         );
-        const email = renderEmail({
+        await this.queue.sendEmail(organizationId, user.email, {
           name: 'account-locked',
           params: {
-            appName: this.env.APP_NAME || DEFAULT_APP_NAME,
+            appName: this.env.APP_NAME,
             fullName: user.fullName,
             minutes: settings.lockout.lockMinutes,
           },
         });
-        await this.queue.sendEmail(
-          organizationId,
-          user.email,
-          {
-            name: 'account-locked',
-            params: {
-              appName: this.env.APP_NAME,
-              fullName: user.fullName,
-              minutes: settings.lockout.lockMinutes,
-            },
-          },
-          email.subject,
-        );
         throw new ApiException(
           'account_locked',
           'Too many wrong passwords. Sign-in is locked for a while; an email was sent.',
@@ -151,12 +135,21 @@ export class CredentialsService {
       );
     }
 
-    const stage: SessionStage = user.twoFactor?.confirmedAt
-      ? 'verify_two_factor'
-      : user.mustChangePassword ||
-          passwordExpired(user.passwordChangedAt, settings.password.expiryDays)
-        ? 'change_password'
-        : 'active';
+    // A trusted device skips the code; the browser proved itself within the trusted-device days.
+    const trusted = user.twoFactor?.confirmedAt ? await this.isTrustedDevice(req, user.id) : false;
+    const stage: SessionStage =
+      user.twoFactor?.confirmedAt && !trusted
+        ? 'verify_two_factor'
+        : user.mustChangePassword ||
+            passwordExpired(user.passwordChangedAt, settings.password.expiryDays)
+          ? 'change_password'
+          : 'active';
+    const label = deviceLabel(userAgent);
+    const seenBefore = await this.prisma.session.findFirst({
+      where: { userId: user.id, deviceLabel: label, ...(ip ? { ip } : {}) },
+      select: { id: true },
+    });
+    const firstEver = (await this.prisma.session.count({ where: { userId: user.id } })) === 0;
 
     const needsRehash = this.passwords.needsRehash(user.passwordHash);
     const newHash = needsRehash ? await this.passwords.hash(input.password) : null;
@@ -191,9 +184,35 @@ export class CredentialsService {
     );
     await this.throttle.clearFailures(emailNormalized);
     await attempt(true, null, user.id);
+    if (!seenBefore && !firstEver) {
+      await this.queue.sendEmail(organizationId, user.email, {
+        name: 'new-device-sign-in',
+        params: {
+          appName: this.env.APP_NAME,
+          fullName: user.fullName,
+          device: label ?? 'an unknown device',
+          ip,
+          when: new Date().toUTCString(),
+        },
+      });
+    }
 
     const setupComplete = await this.organizations.isSetupComplete(organizationId);
     return { stage, next: nextFor(stage, setupComplete) };
+  }
+
+  private async isTrustedDevice(req: Request, userId: string): Promise<boolean> {
+    const token = trustedTokenFrom(req, this.env);
+    if (!token) return false;
+    const row = await this.prisma.trustedDevice.findUnique({
+      where: { tokenHash: hashToken(token) },
+    });
+    if (!row || row.userId !== userId || row.revokedAt || row.expiresAt <= new Date()) return false;
+    await this.prisma.trustedDevice.update({
+      where: { id: row.id },
+      data: { lastUsedAt: new Date() },
+    });
+    return true;
   }
 
   async signOut(req: Request, res: Response, auth: AuthContext): Promise<void> {
@@ -263,7 +282,7 @@ export class CredentialsService {
         changes: { otherSessionsRevoked: revoked, fromStage: auth.stage },
       });
     });
-    const email = renderEmail({
+    await this.queue.sendEmail(auth.organizationId, user.email, {
       name: 'password-changed',
       params: {
         appName: this.env.APP_NAME,
@@ -271,19 +290,6 @@ export class CredentialsService {
         when: new Date().toUTCString(),
       },
     });
-    await this.queue.sendEmail(
-      auth.organizationId,
-      user.email,
-      {
-        name: 'password-changed',
-        params: {
-          appName: this.env.APP_NAME,
-          fullName: user.fullName,
-          when: new Date().toUTCString(),
-        },
-      },
-      email.subject,
-    );
 
     const setupComplete = await this.organizations.isSetupComplete(auth.organizationId);
     return { next: nextFor('active', setupComplete) };

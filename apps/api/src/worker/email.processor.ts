@@ -1,7 +1,7 @@
 import type { Job } from 'bullmq';
 import type { PrismaClient } from '../generated/prisma/client';
 import type { Env } from '../platform/config/config';
-import type { EmailJob } from '../platform/jobs/queue.service';
+import type { EmailJob } from '../platform/jobs/email-queue';
 import type { Logger } from '../platform/logging/logger';
 import { transportFor } from '../platform/mail/mail.service';
 import { renderEmail } from '../platform/mail/templates';

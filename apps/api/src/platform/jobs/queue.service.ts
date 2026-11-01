@@ -5,21 +5,14 @@ import { ENV } from '../config/config.module';
 import { PrismaService } from '../database/prisma.service';
 import type { EmailTemplate } from '../mail/templates';
 import { RedisService } from '../redis/redis.service';
+import { enqueueEmail } from './email-queue';
+
+export { type EmailJob } from './email-queue';
 
 export const QUEUE_NAMES = ['email', 'maintenance', 'backup', 'exports'] as const;
 export type QueueName = (typeof QUEUE_NAMES)[number];
 
-export interface EmailJob {
-  emailLogId: string;
-  organizationId: string;
-  to: string;
-  template: EmailTemplate;
-}
-
-/**
- * Hands work to the background worker. Email: an `email_log` row is written first so the
- * admin screens can show every message and its outcome; the job carries the row id.
- */
+/** Hands work to the background worker. */
 @Injectable()
 export class QueueService implements OnModuleDestroy {
   private readonly queues = new Map<QueueName, Queue>();
@@ -48,29 +41,9 @@ export class QueueService implements OnModuleDestroy {
     return q;
   }
 
-  async sendEmail(
-    organizationId: string,
-    to: string,
-    template: EmailTemplate,
-    subject: string,
-  ): Promise<string> {
-    const log = await this.prisma.emailLog.create({
-      data: { organizationId, toAddress: to, template: template.name, subject, status: 'queued' },
-    });
-    const job: EmailJob = { emailLogId: log.id, organizationId, to, template };
-    try {
-      const added = await this.queue('email').add('send', job, { jobId: log.id });
-      await this.prisma.emailLog.update({
-        where: { id: log.id },
-        data: { jobId: added.id ?? log.id },
-      });
-    } catch (error) {
-      await this.prisma.emailLog.update({
-        where: { id: log.id },
-        data: { status: 'failed', error: error instanceof Error ? error.message : String(error) },
-      });
-    }
-    return log.id;
+  /** Every email has an email_log row before it is queued; the worker records the outcome. */
+  sendEmail(organizationId: string, to: string, template: EmailTemplate): Promise<string> {
+    return enqueueEmail(this.prisma, this.queue('email'), organizationId, to, template);
   }
 
   async onModuleDestroy(): Promise<void> {

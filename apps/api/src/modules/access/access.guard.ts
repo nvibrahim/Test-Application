@@ -4,7 +4,14 @@ import type { Request, Response } from 'express';
 import { ApiException, forbidden, unauthenticated } from '../../platform/http/api-error';
 import { SessionsService } from '../auth/sessions.service';
 import { CsrfService } from '../auth/csrf.service';
-import { ACCESS_RULE, ALLOW_DURING_SETUP, SKIP_CSRF, type AccessRule } from './decorators';
+import {
+  ACCESS_RULE,
+  ALLOW_DURING_SETUP,
+  REQUIRE_STEP_UP,
+  SKIP_CSRF,
+  type AccessRule,
+} from './decorators';
+import { StepUpService } from '../two-factor/step-up.service';
 import type { AuthenticatedRequest } from './request-context';
 
 const STATE_CHANGING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -19,6 +26,7 @@ export class AccessGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly sessions: SessionsService,
     private readonly csrf: CsrfService,
+    private readonly stepUp: StepUpService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -60,6 +68,11 @@ export class AccessGuard implements CanActivate {
       if (!auth.isSuperAdmin && !rule.all.every((p) => auth.permissions.has(p))) throw forbidden();
     } else if (rule.kind === 'any-permission') {
       if (!auth.isSuperAdmin && !rule.any.some((p) => auth.permissions.has(p))) throw forbidden();
+    }
+    const needsStepUp =
+      this.reflector.getAllAndOverride<boolean>(REQUIRE_STEP_UP, [handler, cls]) === true;
+    if (needsStepUp && !(await this.stepUp.hasGrant(auth.sessionId))) {
+      throw new ApiException('step_up_required', 'Confirm it is you to continue');
     }
     return true;
   }

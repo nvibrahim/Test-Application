@@ -7,6 +7,7 @@ import { SetMetadata } from '@nestjs/common';
 export const ACCESS_RULE = 'inspower:access-rule';
 export const ALLOW_DURING_SETUP = 'inspower:allow-during-setup';
 export const SKIP_CSRF = 'inspower:skip-csrf';
+export const REQUIRE_STEP_UP = 'inspower:require-step-up';
 
 export type AccessRule =
   | { kind: 'public' }
@@ -34,3 +35,6 @@ export const AllowDuringSetup = () => SetMetadata(ALLOW_DURING_SETUP, true);
 
 /** For routes no browser calls (machine clients). Nothing in Phase 1 uses it. */
 export const SkipCsrf = () => SetMetadata(SKIP_CSRF, true);
+
+/** A sensitive action: the person must have proved it is them within the last few minutes (POST /auth/step-up). */
+export const RequireStepUp = () => SetMetadata(REQUIRE_STEP_UP, true);
