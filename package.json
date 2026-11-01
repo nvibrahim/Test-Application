@@ -1,0 +1,40 @@
+{
+  "name": "inspower-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Inspower Core: the foundation platform (landing, sign-in, users, permissions, settings, backups).",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:integration": "pnpm --filter @inspower/api test:integration",
+    "test:e2e": "pnpm --filter @inspower/web test:e2e",
+    "check": "turbo run lint typecheck test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:migrate": "pnpm --filter @inspower/api db:migrate",
+    "db:deploy": "pnpm --filter @inspower/api db:deploy",
+    "db:generate": "pnpm --filter @inspower/api db:generate",
+    "inspower": "pnpm --filter @inspower/api cli --",
+    "services:up": "node scripts/services.mjs up",
+    "services:down": "node scripts/services.mjs down",
+    "services:status": "node scripts/services.mjs status",
+    "services:logs": "node scripts/services.mjs logs",
+    "db:seed": "pnpm --filter @inspower/api exec tsx prisma/seed.ts",
+    "start:api": "pnpm --filter @inspower/api start",
+    "start:worker": "pnpm --filter @inspower/api start:worker",
+    "start:web": "pnpm --filter @inspower/web start"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.11.10",
+    "typescript": "^6.0.3"
+  }
+}
