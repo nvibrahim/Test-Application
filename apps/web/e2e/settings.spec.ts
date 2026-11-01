@@ -35,18 +35,18 @@ test('settings, organization and locations: save General, edit the profile after
   await page.goto('/admin/organization');
   await expect(page.getByText('Northwind Dental Ltd')).toBeVisible();
   await page.getByRole('button', { name: 'Edit profile' }).click();
-  await page.getByLabel('Trading name').fill('Northwind');
+  await page.getByLabel('Trading name').fill(`Northwind ${testInfo.project.name}`);
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page.getByText('Saved.')).toBeVisible();
-  await expect(page.getByText('Northwind', { exact: true })).toBeVisible();
+  await expect(page.getByText(`Northwind ${testInfo.project.name}`, { exact: true })).toBeVisible();
   await expectAccessible(page);
 
   await page.goto('/admin/locations');
   await page.getByRole('button', { name: 'Add location' }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Name').fill('Southsea');
+  await dialog.getByLabel('Name').fill(`Southsea ${testInfo.project.name}`);
   await dialog.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByText('Southsea')).toBeVisible();
+  await expect(page.getByText(`Southsea ${testInfo.project.name}`)).toBeVisible();
   await expect(page.getByText('Head office')).toBeVisible();
   await expectAccessible(page);
 
