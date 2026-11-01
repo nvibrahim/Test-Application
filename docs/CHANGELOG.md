@@ -2,6 +2,34 @@
 
 Each phase ends with an entry here. Dates are the day the phase was finished.
 
+## Phase 5, Theme, landing and mobile (1 November 2026)
+
+- **Theme engine** in the shared package: one brand colour and the Appearance choices produce
+  every token for light and dark; every text/background pair the engine owns is checked at
+  WCAG 2.2 AA (4.5:1 text, 3:1 outlines) by unit tests over all six presets, every sidebar and
+  top-bar style, and sixteen custom colours. A colour white text cannot read on is darkened
+  until it can (the hue stays) and the API says so. Status and chart colours never change.
+- **Appearance endpoint** (public, ETag, a minute's cache) with the computed tokens; the root
+  layout injects them as a nonce-carrying `<style>` before first paint; the sign-in page and
+  the landing page are branded before anyone signs in. Sidebar and top bar follow the chosen
+  styles; density and corners are attributes on `<html>`.
+- **Brand pictures**: logo for light and dark, browser-tab icon, sign-in picture. PNG, JPG or
+  WebP up to 1 MB, the type and size read from the bytes, SVG refused, the icon squared in the
+  browser before upload; served back only as the picture type they are.
+- **Landing page** with wording from Settings -> General, **privacy** draft, **contact form**
+  (rate limited per address, a honeypot, a minimum fill time, emails the support address,
+  stores an audit row only).
+- **Enforced CSP** with a per-request nonce from the proxy, `frame-ancestors 'none'`, no
+  inline scripts. **PWA**: a manifest from Settings with the brand icon, installable, the
+  shell's own icon as fallback.
+- **Design-system page** (`/design-system`) with every component in every state.
+- **Tests:** 30 shared (theme engine), 33 API unit, 75 API integration (appearance, ETag,
+  darkened colour, picture upload and refusals, contact form on/off, honeypot, limit),
+  Playwright: public pages with axe at three widths, CSP and manifest present, a brand colour
+  recolouring the app.
+- **Not in this phase:** a Lighthouse run (no Chrome DevTools in the build container; the pages
+  are static server components with the smallest JavaScript the shell allows).
+
 ## Phase 4, Organization and settings (1 November 2026)
 
 - **Settings** (`/admin/settings`): eight sections, each with its own Zod schema in the shared

@@ -13,3 +13,4 @@ export * from './access.js';
 export * from './settings/sections.js';
 export * from './notifications.js';
 export * from './organization.js';
+export * from './theme/index.js';

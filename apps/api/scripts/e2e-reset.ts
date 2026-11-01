@@ -6,6 +6,7 @@
  */
 import { execSync } from 'node:child_process';
 import path from 'node:path';
+import { Redis } from 'ioredis';
 import { Client } from 'pg';
 import { adminCommand } from '../src/cli/admin';
 import { loadEnv } from '../src/platform/config/config';
@@ -39,6 +40,13 @@ async function main(): Promise<void> {
   const cwd = path.resolve(__dirname, '..');
   for (const cmd of ['pnpm exec prisma migrate deploy', 'pnpm exec tsx prisma/seed.ts']) {
     execSync(cmd, { stdio: 'inherit', cwd, env: { ...process.env, DATABASE_URL: url } });
+  }
+  // Throttle counters and caches from an earlier run must not leak into this one.
+  const redisUrl = process.env['REDIS_URL'];
+  if (redisUrl && /\/2$/.test(redisUrl)) {
+    const redis = new Redis(redisUrl);
+    await redis.flushdb();
+    await redis.quit();
   }
   const prisma = createPrismaClient(url);
   try {

@@ -1,6 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { API_BASE_PATH } from '@inspower/shared';
 import cookieParser from 'cookie-parser';
+import expressLib from 'express';
 import type { Express } from 'express';
 import helmet from 'helmet';
 import { assertEveryRouteHasARule } from './modules/access/route-check';
@@ -36,6 +37,8 @@ export function setupApp(app: INestApplication): INestApplication {
     }),
   );
   app.use(cookieParser());
+  // Brand pictures arrive as the raw file; everything else is JSON (Nest's default parser).
+  app.use(`${API_BASE_PATH}/settings/brand`, expressLib.raw({ type: () => true, limit: '2mb' }));
   app.enableCors({ origin: env.WEB_ORIGIN, credentials: true });
   app.enableShutdownHooks();
 

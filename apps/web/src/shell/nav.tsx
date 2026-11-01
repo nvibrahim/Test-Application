@@ -10,7 +10,10 @@ import { RouteIcon } from './icons';
 export function Sidebar({ items, appName }: { items: RouteMeta[]; appName: string }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Main" className="hidden w-60 shrink-0 flex-col border-r bg-card md:flex">
+    <nav
+      aria-label="Main"
+      className="hidden w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground md:flex"
+    >
       <div className="flex h-14 items-center px-5 font-semibold">{appName}</div>
       <ul className="flex-1 space-y-1 px-3 py-2">
         {items.map((item) => {

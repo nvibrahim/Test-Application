@@ -15,7 +15,9 @@ import {
   CardTitle,
 } from '@inspower/ui/components/card';
 import { cn } from '@inspower/ui/lib/utils';
+import { BrandAssets } from '@/features/appearance/brand-assets';
 import { SettingsForm } from '@/features/settings/settings-form';
+import { appearance } from '@/lib/appearance';
 import { apiServer } from '@/lib/api';
 import { appRoutes } from '@/lib/routes';
 import { cookieHeader, requireSession } from '@/lib/session';
@@ -55,6 +57,7 @@ export default async function SettingsPage({
     apiServer(`/settings/${section}`, settingsSectionResponseSchema, { cookie }),
   ]);
   const current = list.sections.find((s) => s.key === section)!;
+  const look = section === 'appearance' ? await appearance() : null;
   return (
     <Page title={appRoutes.settings.title} fullName={session.user.fullName}>
       <div className="grid gap-6 md:grid-cols-[14rem_1fr]">

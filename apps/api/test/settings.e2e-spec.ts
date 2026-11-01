@@ -86,7 +86,7 @@ describe('settings sections', () => {
       orderBy: { createdAt: 'desc' },
     });
     expect(
-      (audit?.changes as { before: { appName: string }; after: { appName: string } }).before
+      (audit!.changes as { before: { appName: string }; after: { appName: string } }).before
         .appName,
     ).toBe('Inspower');
     const bad = await owner.put('/settings/general', { appName: '' });

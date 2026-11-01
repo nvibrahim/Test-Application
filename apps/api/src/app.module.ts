@@ -1,7 +1,9 @@
 import { type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
 import { APP_FILTER, DiscoveryModule } from '@nestjs/core';
 import { AccessModule } from './modules/access/access.module';
+import { AppearanceModule } from './modules/appearance/appearance.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { PublicModule } from './modules/public/public.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TwoFactorModule } from './modules/two-factor/two-factor.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
@@ -38,6 +40,8 @@ import { TransactionModule } from './platform/transaction/transaction.module';
     UsersModule,
     RolesModule,
     RealtimeModule,
+    AppearanceModule,
+    PublicModule,
     AccessModule,
     HealthModule,
   ],

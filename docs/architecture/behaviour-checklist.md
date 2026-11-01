@@ -69,13 +69,13 @@ Phase 0 items are already covered.
 
 ## Phase 5, Theme, landing and mobile
 
-- [ ] One brand colour produces every token for light and dark; every text/background pair is WCAG 2.2 AA (unit tests over all presets and a spread of custom colours); a colour white text cannot be read on is refused
-- [ ] Status and chart colours never change with the brand
-- [ ] Tokens are injected before first paint with a nonce; nothing is emitted for the built-in look
-- [ ] Brand assets: PNG, JPG or WebP up to 1 MB, type and size read from the bytes, SVG refused, served back only as a picture
-- [ ] Enforced CSP with nonces; no inline scripts; `frame-ancestors 'none'`
-- [ ] Landing wording comes from Settings; contact form is rate limited, has a honeypot, stores nothing but an audit row
-- [ ] Core flows pass at 375, 820 and 1440 px with axe; touch targets ≥ 44 px on phones; PWA installs
+- [x] One brand colour produces every token for light and dark; every text/background pair is WCAG 2.2 AA (unit tests over all presets and a spread of custom colours); a colour white text cannot be read on is refused — `engine.test.ts` (darkened instead of refused, see ADR-003), `appearance.e2e-spec.ts`
+- [x] Status and chart colours never change with the brand — `engine.ts` (only brand, sidebar, top bar, link and ring tokens are written)
+- [x] Tokens are injected before first paint with a nonce; nothing is emitted for the built-in look — `app/layout.tsx`, `appearance.e2e-spec.ts` (css empty for the built-in look)
+- [x] Brand assets: PNG, JPG or WebP up to 1 MB, type and size read from the bytes, SVG refused, served back only as a picture — `image-check.spec.ts`, `appearance.e2e-spec.ts`
+- [x] Enforced CSP with nonces; no inline scripts; `frame-ancestors 'none'` — `proxy.ts`, browser `appearance.spec.ts`
+- [x] Landing wording comes from Settings; contact form is rate limited, has a honeypot, stores nothing but an audit row — `appearance.e2e-spec.ts` (the public contact form)
+- [x] Core flows pass at 375, 820 and 1440 px with axe; touch targets ≥ 44 px on phones; PWA installs — every browser spec runs at the three widths with axe; `manifest.webmanifest/route.ts`
 
 ## Phase 6, Backup and restore
 

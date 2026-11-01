@@ -102,3 +102,42 @@
     min-height: 100dvh;
   }
 }
+
+/* Tokens the theme engine writes (defaults = the built-in look). */
+:root {
+  --primary-hover: oklch(0.43 0.17 260);
+  --link: var(--primary);
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-active: var(--accent);
+  --sidebar-active-foreground: var(--accent-foreground);
+  --topbar-background: var(--background);
+  --topbar-foreground: var(--foreground);
+}
+.dark {
+  --primary-hover: oklch(0.8 0.12 260);
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-active: var(--accent);
+  --sidebar-active-foreground: var(--accent-foreground);
+  --topbar-background: var(--background);
+  --topbar-foreground: var(--foreground);
+}
+@theme inline {
+  --color-primary-hover: var(--primary-hover);
+  --color-link: var(--link);
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
+  --color-topbar: var(--topbar-background);
+  --color-topbar-foreground: var(--topbar-foreground);
+}
+
+/* Density and corners chosen in Settings -> Appearance, as attributes on <html>. */
+html[data-density='compact'] {
+  --row-padding: 0.375rem;
+}
+html[data-density='comfortable'] {
+  --row-padding: 0.75rem;
+}

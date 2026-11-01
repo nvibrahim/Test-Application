@@ -50,6 +50,10 @@ export type EmailTemplate =
       params: { appName: string; fullName: string; link: string; minutes: number };
     }
   | { name: 'admin-event'; params: { appName: string; title: string; body: string; link: string } }
+  | {
+      name: 'contact-message';
+      params: { appName: string; name: string; email: string; message: string };
+    }
   | { name: 'test'; params: { appName: string } };
 
 export type EmailTemplateName = EmailTemplate['name'];
@@ -251,6 +255,17 @@ export function renderEmail(template: EmailTemplate): RenderedEmail {
         subject: `${appName}: ${title}`,
         text: `${title}\n\n${body}\n\n${link}`,
         html: layout(appName, title, body ? [escapeHtml(body)] : [], { text: 'Open', link }),
+      };
+    }
+    case 'contact-message': {
+      const { appName, name, email, message } = template.params;
+      return {
+        subject: `${appName}: message from ${name}`,
+        text: `From: ${name} <${email}>\n\n${message}`,
+        html: layout(appName, `Message from ${escapeHtml(name)}`, [
+          `Reply to: ${escapeHtml(email)}`,
+          escapeHtml(message).replace(/\n/g, '<br>'),
+        ]),
       };
     }
     case 'test': {
