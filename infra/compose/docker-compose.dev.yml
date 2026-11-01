@@ -1,0 +1,56 @@
+# Local services for development: `docker compose -f infra/compose/docker-compose.dev.yml up -d`
+# (or `pnpm services:up`). Works with Docker Desktop and with Docker inside WSL.
+name: inspower-dev
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: inspower
+      POSTGRES_PASSWORD: inspower
+      POSTGRES_DB: inspower
+      TZ: UTC
+      PGTZ: UTC
+    ports: ['127.0.0.1:5432:5432']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-test-db.sql:/docker-entrypoint-initdb.d/10-test-db.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U inspower -d inspower']
+      interval: 5s
+      retries: 20
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ['valkey-server', '--appendonly', 'no', '--save', '']
+    ports: ['127.0.0.1:6379:6379']
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 5s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:1025:1025' # SMTP
+      - '127.0.0.1:8025:8025' # inbox: http://127.0.0.1:8025
+
+  minio:
+    # Optional S3-compatible store for backup targets (Phase 6). `--profile extras` to start it.
+    image: minio/minio:latest
+    profiles: ['extras']
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: inspower
+      MINIO_ROOT_PASSWORD: inspower-minio
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    volumes: [miniodata:/data]
+
+volumes:
+  pgdata:
+  miniodata:
