@@ -36,13 +36,13 @@ Phase 0 items are already covered.
 
 ## Phase 2, Two-factor
 
-- [ ] TOTP 30 s ±1 step, replay-protected by last used step; secret sealed with AES-256-GCM; issuer is the organization name
-- [ ] 10 recovery codes, HMAC-hashed, single use, regenerable; use is audited and notified
-- [ ] Trusted devices: hashed cookie token, 0–90 days from Settings → Security
-- [ ] Reminder, not enforcement: dismissible banner returns after 7 days (1–90), reminder emails at day 1, 7 and 30 sent once each, a 2FA column and filter on Users
-- [ ] Admin reset of a user's 2FA needs step-up, is audited and emails the user
-- [ ] Step-up: password or TOTP within the last 10 minutes, grants in `step_up_grants`, 5 wrong tries end the session
-- [ ] Wrong TOTP codes: the sign-in attempt ends after 5
+- [x] TOTP 30 s ±1 step, replay-protected by last used step; secret sealed with AES-256-GCM; issuer is the organization name — `totp.spec.ts`, `two-factor.e2e-spec.ts` (replayed code, issuer)
+- [x] 10 recovery codes, HMAC-hashed, single use, regenerable; use is audited and notified — `two-factor.e2e-spec.ts` (recovery code once; notification and email)
+- [x] Trusted devices: hashed cookie token, 0–90 days from Settings → Security — `two-factor.e2e-spec.ts` (trusts the device; skips the verify stage)
+- [x] Reminder, not enforcement: dismissible banner returns after 7 days (1–90), reminder emails at day 1, 7 and 30 sent once each, a 2FA column and filter on Users — `two-factor.e2e-spec.ts` (reminder shows, dismissed; Users list filter), `two-factor-reminder.ts`, browser `two-factor.spec.ts`
+- [x] Admin reset of a user's 2FA needs step-up, is audited and emails the user — `two-factor.e2e-spec.ts` (resets two-step verification for a person)
+- [x] Step-up: password or TOTP within the last 10 minutes, grants in `step_up_grants`, 5 wrong tries end the session — `two-factor.e2e-spec.ts` (step-up and the sensitive actions), `step-up.service.ts`
+- [x] Wrong TOTP codes: the sign-in attempt ends after 5 — `two-factor.e2e-spec.ts` (ends the session after five wrong codes)
 
 ## Phase 3, Access
 

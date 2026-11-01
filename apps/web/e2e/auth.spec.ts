@@ -83,7 +83,7 @@ test('the dashboard and profile work at this width, and the password can be chan
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(alert(page)).toContainText('Saved');
 
-  await page.getByRole('button', { name: 'Sign out' }).click();
+  await page.getByRole('banner').getByRole('button', { name: 'Sign out' }).click();
   await expect(page).toHaveURL(/\/sign-in$/);
   await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/sign-in$/);

@@ -2,6 +2,39 @@
 
 Each phase ends with an entry here. Dates are the day the phase was finished.
 
+## Phase 2, Two-factor (1 November 2026)
+
+- **TOTP** (30 s, ±1 step) with replay protection by the last used step; the secret is sealed
+  with AES-256-GCM and its key fingerprint; the issuer is the organization's name; a QR code and a
+  copyable key for same-device set-up; the first code confirms the app before anything is saved.
+- **Recovery codes:** ten, HMAC-hashed, single use, shown once with copy and download, regenerable
+  behind step-up; using one writes a notification and sends an email.
+- **Trusted devices:** a hashed cookie for the Settings -> Security number of days (default 30),
+  skips the verify stage at sign-in; listed and removable from Profile -> Security.
+- **The verify stage:** the screen after sign-in with the code box (one-time-code autofill), a
+  recovery-code mode and the trust-this-device tick; five wrong codes end the session.
+- **Step-up:** password or code within the last ten minutes, grants in `step_up_grants`,
+  enforced by `@RequireStepUp()`; the web app asks in a dialog and repeats the action.
+- **Reminder, not enforcement (owner's decision):** a banner in the shell until two-step is set
+  up, dismissable for the interval in Settings (default 7 days); reminder emails on day 1, 7
+  and 30, once each, from the scheduled job `two-factor-reminder`; a Set up now card on the
+  dashboard.
+- **Users list** (`/admin/users`, `users.read`): a two-step column and filter, search; Reset
+  2FA (`users.manage` + step-up, signs the person out everywhere, emails them) and Send reminder.
+- **A first scheduler in the worker:** one BullMQ job scheduler per entry of the shared registry
+  on the `maintenance` queue (outbox cleanup, retention cleanup, two-factor reminders), each run
+  recorded on its `scheduled_jobs` row. Pause, resume, run now and the screen come in Phase 7.
+- **New-device email** at sign-in from a device not seen before.
+- **Components:** Dialog in `packages/ui` (a sheet on phones, a dialog elsewhere).
+- **Migration** `202611021000_two_factor_reminders` (two columns on `user_preferences`).
+- **Tests:** 27 API unit, 43 API integration (set-up, wrong and replayed codes, trusted device,
+  recovery code once, five failures, step-up, admin reset, reminders), 19 shared; Playwright at
+  three widths: the whole journey from the reminder banner to turning it off with step-up, and
+  the Users list.
+- **Not in this phase (by plan):** enforcing policies (`required_admins`, `required_all`) are
+  stored and reserved but not applied, per the owner's decision; WebAuthn is designed for
+  (`user_two_factor.kind`) and not built.
+
 ## Phase 1, Identity (1 November 2026)
 
 - **Shared:** password policy on zxcvbn (minimum 8, 12 for a Super Admin, strength score 3,

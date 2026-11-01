@@ -121,7 +121,6 @@ describe('signing in with two-step verification', () => {
       'invalid_code',
     );
     const fresh = await freshCode();
-    const code = fresh;
     const ok = await phone.post('/auth/two-factor/verify', { code: fresh, trustDevice: true });
     expect(ok.status).toBe(200);
     expect(ok.body).toEqual({ next: '/dashboard' });

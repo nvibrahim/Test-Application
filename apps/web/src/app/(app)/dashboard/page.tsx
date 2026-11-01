@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { profileSchema, sessionListSchema } from '@inspower/shared';
+import { Button } from '@inspower/ui/components/button';
 import {
   Card,
   CardContent,
@@ -56,10 +58,17 @@ export default async function DashboardPage() {
             <CardTitle>Two-step verification</CardTitle>
             <CardDescription>{profile.twoFactorEnabled ? 'On' : 'Not set up yet'}</CardDescription>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            {profile.twoFactorEnabled
-              ? 'Your account asks for a code from your authenticator app.'
-              : 'Protect your account with a code from your phone. Setting it up arrives with Phase 2.'}
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              {profile.twoFactorEnabled
+                ? 'Your account asks for a code from your authenticator app.'
+                : 'Protect your account with a code from your phone. It takes two minutes.'}
+            </p>
+            {profile.twoFactorEnabled ? null : (
+              <Button asChild size="sm">
+                <Link href="/profile?tab=security">Set up now</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
         {session.user.isSuperAdmin || session.user.permissions.includes('system.read') ? (

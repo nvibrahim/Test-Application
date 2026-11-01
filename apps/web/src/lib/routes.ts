@@ -26,6 +26,14 @@ export function defineRoute(meta: z.input<typeof routeMetaSchema>): RouteMeta {
 /** Every `(app)` page, in one place. Pages import their own entry from here. */
 export const appRoutes = {
   dashboard: defineRoute({ path: '/dashboard', title: 'Dashboard', icon: 'home', order: 10 }),
+  users: defineRoute({
+    path: '/admin/users',
+    title: 'Users',
+    icon: 'users',
+    permission: 'users.read',
+    group: 'Administration',
+    order: 100,
+  }),
   profile: defineRoute({ path: '/profile', title: 'My profile', icon: 'user', order: 900 }),
   health: defineRoute({
     path: '/health',

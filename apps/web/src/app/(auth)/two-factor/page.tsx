@@ -1,18 +1,27 @@
 import type { Metadata } from 'next';
-import { requireSession } from '@/lib/session';
+import { z } from 'zod';
+import { VerifyForm } from '@/features/two-factor/verify-form';
+import { apiServer } from '@/lib/api';
+import { cookieHeader, requireSession } from '@/lib/session';
 
 export const metadata: Metadata = { title: 'Two-step verification' };
 export const dynamic = 'force-dynamic';
 
-/** Phase 2 builds this screen; the stage machine already routes here when two-factor is set up. */
+const securityPublic = z.object({ trustedDeviceDays: z.number().int() });
+
 export default async function TwoFactorPage() {
-  await requireSession({ stages: ['verify_two_factor'], allowDuringSetup: true });
+  const session = await requireSession({ stages: ['verify_two_factor'], allowDuringSetup: true });
+  const settings = await apiServer('/auth/two-factor/settings', securityPublic, {
+    cookie: await cookieHeader(),
+  }).catch(() => ({ trustedDeviceDays: 30 }));
   return (
     <>
       <h1 className="mb-2 text-2xl font-semibold tracking-tight">Two-step verification</h1>
-      <p className="text-sm text-muted-foreground">
-        Enter the code from your authenticator app. (Arrives with Phase 2.)
+      <p className="mb-6 text-sm text-muted-foreground">
+        Welcome back, {session.user.fullName.split(' ')[0]}. Enter the code from your authenticator
+        app.
       </p>
+      <VerifyForm trustedDeviceDays={settings.trustedDeviceDays} />
     </>
   );
 }

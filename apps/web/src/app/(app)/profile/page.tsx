@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { profileSchema, sessionListSchema } from '@inspower/shared';
+import { profileSchema, sessionListSchema, twoFactorStatusSchema } from '@inspower/shared';
+import { TwoFactorCard } from '@/features/two-factor/two-factor-card';
 import {
   Card,
   CardContent,
@@ -37,9 +38,10 @@ export default async function ProfilePage({
   const { tab: requested } = await searchParams;
   const tab: Tab = tabs.some((t) => t.key === requested) ? (requested as Tab) : 'personal';
   const cookie = await cookieHeader();
-  const [profile, sessions] = await Promise.all([
+  const [profile, sessions, twoFactor] = await Promise.all([
     apiServer('/profile', profileSchema, { cookie }),
     apiServer('/profile/sessions', sessionListSchema, { cookie }),
+    apiServer('/two-factor', twoFactorStatusSchema, { cookie }),
   ]);
 
   return (
@@ -90,16 +92,7 @@ export default async function ProfilePage({
               <ChangePasswordForm email={profile.email} fullName={profile.fullName} />
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Two-step verification</CardTitle>
-              <CardDescription>
-                {profile.twoFactorEnabled
-                  ? 'On'
-                  : 'Not set up yet. Setting it up arrives with Phase 2.'}
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          <TwoFactorCard status={twoFactor} />
           <Card className="xl:col-span-2">
             <CardHeader>
               <CardTitle>Where you are signed in</CardTitle>

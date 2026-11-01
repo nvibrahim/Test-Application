@@ -10,7 +10,7 @@ describe('route metadata', () => {
     const viewer = navigationFor({ permissions: [], isSuperAdmin: false }).map((r) => r.path);
     expect(viewer).toEqual(['/dashboard', '/profile']);
     const admin = navigationFor({ permissions: [], isSuperAdmin: true }).map((r) => r.path);
-    expect(admin).toEqual(['/dashboard', '/health', '/profile']);
+    expect(admin).toEqual(['/dashboard', '/admin/users', '/health', '/profile']);
     const withPermission = navigationFor({ permissions: ['system.read'], isSuperAdmin: false }).map(
       (r) => r.path,
     );

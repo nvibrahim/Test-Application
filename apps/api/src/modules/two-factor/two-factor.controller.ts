@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { ZodPipe } from '../../platform/http/zod.pipe';
 import { AllowDuringSetup, RequireStepUp, SignedIn } from '../access/decorators';
 import { authOf } from '../access/request-context';
+import { SecuritySettingsService } from '../auth/security-settings';
 import { StepUpService } from './step-up.service';
 import { TwoFactorService } from './two-factor.service';
 
@@ -77,7 +78,17 @@ export class TwoFactorAuthController {
   constructor(
     private readonly twoFactor: TwoFactorService,
     private readonly stepUp: StepUpService,
+    private readonly security: SecuritySettingsService,
   ) {}
+
+  /** What the verify screen needs to know: how long a trusted device lasts (0 hides the option). */
+  @SignedIn('verify_two_factor', 'active')
+  @AllowDuringSetup()
+  @Get('two-factor/settings')
+  async settings(@Req() req: Request) {
+    const settings = await this.security.read(authOf(req).organizationId);
+    return { trustedDeviceDays: settings.twoFactor.trustedDeviceDays };
+  }
 
   @SignedIn('verify_two_factor')
   @AllowDuringSetup()

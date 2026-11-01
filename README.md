@@ -8,7 +8,7 @@ The approved design is [`docs/architecture/new-application-plan.md`](docs/archit
 Decisions that differ from it are recorded as ADRs in `docs/architecture/adr/`. Progress is in
 [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 
-## What is here (Phases 0 and 1)
+## What is here (Phases 0 to 2)
 
 | Part                            | Where                         | Notes                                                                        |
 | ------------------------------- | ----------------------------- | ---------------------------------------------------------------------------- |
