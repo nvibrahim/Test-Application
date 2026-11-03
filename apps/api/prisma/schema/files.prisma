@@ -1,0 +1,17 @@
+/// Metadata only; the content lives in the storage adapter (local disk now, S3 later).
+model StoredFile {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  kind           String
+  fileName       String    @map("file_name")
+  contentType    String    @map("content_type")
+  sizeBytes      Int       @map("size_bytes")
+  checksum       String
+  storageKey     String    @unique @map("storage_key")
+  uploadedBy     String?   @map("uploaded_by") @db.Uuid
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([organizationId, kind])
+  @@map("stored_files")
+}

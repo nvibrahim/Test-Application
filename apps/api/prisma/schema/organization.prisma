@@ -1,0 +1,46 @@
+model Organization {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  legalName       String   @map("legal_name")
+  tradingName     String?  @map("trading_name")
+  countryCode     String?  @map("country_code") @db.Char(2)
+  currencyCode    String?  @map("currency_code") @db.Char(3)
+  timeZone        String   @default("UTC") @map("time_zone")
+  dateFormat      String   @default("yyyy-MM-dd") @map("date_format")
+  numberFormat    String   @default("en-GB") @map("number_format")
+  weekStartsOn    Int      @default(1) @map("week_starts_on")
+  addressLines    String[] @default([]) @map("address_lines")
+  documentFooter  String?  @map("document_footer")
+  setupCompletedAt DateTime? @map("setup_completed_at") @db.Timestamptz(6)
+  version         Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy       String?  @map("created_by") @db.Uuid
+  updatedBy       String?  @map("updated_by") @db.Uuid
+
+  locations Location[]
+
+  @@map("organizations")
+}
+
+model Location {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  name           String
+  isHeadOffice   Boolean   @default(false) @map("is_head_office")
+  isActive       Boolean   @default(true) @map("is_active")
+  timeZone       String?   @map("time_zone")
+  addressLines   String[]  @default([]) @map("address_lines")
+  managerUserId  String?   @map("manager_user_id") @db.Uuid
+  version        Int       @default(1)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedBy      String?   @map("updated_by") @db.Uuid
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  userRoles     UserRole[]
+  userLocations UserLocation[]
+
+  @@index([organizationId])
+  @@map("locations")
+}

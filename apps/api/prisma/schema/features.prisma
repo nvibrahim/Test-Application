@@ -1,0 +1,32 @@
+enum FeatureFlagState {
+  off
+  on
+  super_admin_only
+  selected_users
+
+  @@map("feature_flag_state")
+}
+
+model FeatureFlag {
+  key            String           @id
+  organizationId String           @map("organization_id") @db.Uuid
+  state          FeatureFlagState @default(off)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?          @map("updated_by") @db.Uuid
+
+  users FeatureFlagUser[]
+
+  @@map("feature_flags")
+}
+
+model FeatureFlagUser {
+  flagKey        String @map("flag_key")
+  userId         String @map("user_id") @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+
+  flag FeatureFlag @relation(fields: [flagKey], references: [key], onDelete: Cascade)
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([flagKey, userId])
+  @@map("feature_flag_users")
+}

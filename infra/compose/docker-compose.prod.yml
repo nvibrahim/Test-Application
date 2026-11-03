@@ -1,0 +1,97 @@
+# One organization's stack in production. Started per client as:
+#   docker compose -p inspower-<slug> --env-file clients/<slug>/.env -f docker-compose.prod.yml up -d
+# The image is the same for every client; only .env differs. Caddy (infra/caddy) sits in front.
+name: inspower-${CLIENT_SLUG}
+
+x-app: &app
+  image: ${IMAGE:-inspower}:${VERSION:-latest}
+  restart: unless-stopped
+  env_file: ${CLIENT_ENV_FILE:-.env}
+  environment:
+    NODE_ENV: production
+    TZ: UTC
+    API_HOST: 0.0.0.0
+    API_PORT: 4000
+    API_INTERNAL_URL: http://api:4000
+    DATABASE_URL: postgresql://inspower:${POSTGRES_PASSWORD}@postgres:5432/inspower?schema=public
+    REDIS_URL: redis://:${REDIS_PASSWORD}@valkey:6379/0
+    COOKIE_SECURE: 'true'
+    TRUST_PROXY: 'loopback, uniquelocal'
+    APP_VERSION: ${VERSION:-latest}
+  networks: [internal, outbound]
+  deploy:
+    resources:
+      limits: { memory: 512M }
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: inspower
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: inspower
+      TZ: UTC
+      PGTZ: UTC
+    volumes: [pgdata:/var/lib/postgresql/data]
+    networks: [internal]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U inspower -d inspower']
+      interval: 5s
+      retries: 20
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ['valkey-server', '--requirepass', '${REDIS_PASSWORD}', '--appendonly', 'yes']
+    volumes: [valkeydata:/data]
+    networks: [internal]
+
+  migrate:
+    <<: *app
+    restart: 'no'
+    command: ['migrate']
+    profiles: ['jobs']
+    depends_on: { postgres: { condition: service_healthy } }
+
+  api:
+    <<: *app
+    command: ['api']
+    networks: [internal, outbound, edge]
+    depends_on: { postgres: { condition: service_healthy }, valkey: { condition: service_started } }
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:4000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      retries: 5
+
+  worker:
+    <<: *app
+    command: ['worker']
+    volumes: [backups:/backups, storage:/storage]
+    environment:
+      STORAGE_DIR: /storage
+      BACKUP_DIR: /backups
+    depends_on: { postgres: { condition: service_healthy }, valkey: { condition: service_started } }
+
+  web:
+    <<: *app
+    command: ['web']
+    networks: [internal, edge]
+    depends_on: [api]
+
+volumes:
+  pgdata: { name: 'inspower-${CLIENT_SLUG}-pgdata' }
+  valkeydata: { name: 'inspower-${CLIENT_SLUG}-valkeydata' }
+  backups: { name: 'inspower-${CLIENT_SLUG}-backups' }
+  storage: { name: 'inspower-${CLIENT_SLUG}-storage' }
+
+networks:
+  internal: { name: 'inspower-${CLIENT_SLUG}-internal', internal: true }
+  outbound: { name: 'inspower-${CLIENT_SLUG}-outbound' }
+  edge: { name: 'inspower-${CLIENT_SLUG}-edge' }

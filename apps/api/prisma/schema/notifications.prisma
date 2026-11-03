@@ -1,0 +1,54 @@
+model Notification {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  type           String
+  title          String
+  body           String?
+  link           String?
+  readAt         DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  userId         String  @map("user_id") @db.Uuid
+  organizationId String  @map("organization_id") @db.Uuid
+  type           String
+  inApp          Boolean @map("in_app")
+  email          Boolean
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, type])
+  @@map("notification_preferences")
+}
+
+enum EmailStatus {
+  queued
+  sent
+  failed
+
+  @@map("email_status")
+}
+
+model EmailLog {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  organizationId String      @map("organization_id") @db.Uuid
+  toAddress      String      @map("to_address")
+  template       String
+  subject        String
+  status         EmailStatus @default(queued)
+  error          String?
+  jobId          String?     @map("job_id")
+  sentAt         DateTime?   @map("sent_at") @db.Timestamptz(6)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@map("email_log")
+}

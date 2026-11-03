@@ -1,0 +1,6 @@
+# Local HTTPS in front of `pnpm dev` (optional): caddy run --config infra/caddy/Caddyfile.dev
+# Uses Caddy's local certificate authority; trust it once with `caddy trust`.
+localhost {
+	reverse_proxy /api/v1/realtime* 127.0.0.1:4000
+	reverse_proxy 127.0.0.1:3000
+}

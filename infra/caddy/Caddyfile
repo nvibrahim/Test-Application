@@ -1,0 +1,29 @@
+# Reverse proxy for one deployment. Caddy fetches and renews certificates by itself.
+# Set SITE_ADDRESS (e.g. app.client.example) and the upstream names for the client's stack.
+{
+	email {$ACME_EMAIL:ops@example.com}
+}
+
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+
+	# Realtime (Socket.IO) goes straight to the API
+	reverse_proxy /api/v1/realtime* {$API_UPSTREAM:api:4000}
+
+	# Everything else goes to the web app, which forwards /api/* to the API itself
+	reverse_proxy {$WEB_UPSTREAM:web:3000}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output file /data/logs/{$SITE_ADDRESS:localhost}.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+	}
+}

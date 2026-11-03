@@ -1,0 +1,143 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. This file is the built-in look. Phase 5 adds the theme engine, which
+ * writes a site's own brand tokens over these at run time. Screens use tokens only.
+ * Every text/background pair here meets WCAG 2.2 AA in both themes.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.2 0.02 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.02 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.02 260);
+  --primary: oklch(0.48 0.17 260);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.01 260);
+  --secondary-foreground: oklch(0.25 0.02 260);
+  --muted: oklch(0.96 0.01 260);
+  --muted-foreground: oklch(0.45 0.02 260);
+  --accent: oklch(0.95 0.02 260);
+  --accent-foreground: oklch(0.25 0.02 260);
+  --destructive: oklch(0.5 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.45 0.15 150);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.6 0.15 70);
+  --warning-foreground: oklch(0.15 0.02 70);
+  --border: oklch(0.9 0.01 260);
+  --input: oklch(0.9 0.01 260);
+  --ring: oklch(0.48 0.17 260);
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: oklch(0.16 0.02 260);
+  --foreground: oklch(0.95 0.01 260);
+  --card: oklch(0.2 0.02 260);
+  --card-foreground: oklch(0.95 0.01 260);
+  --popover: oklch(0.2 0.02 260);
+  --popover-foreground: oklch(0.95 0.01 260);
+  --primary: oklch(0.75 0.13 260);
+  --primary-foreground: oklch(0.15 0.02 260);
+  --secondary: oklch(0.27 0.02 260);
+  --secondary-foreground: oklch(0.95 0.01 260);
+  --muted: oklch(0.27 0.02 260);
+  --muted-foreground: oklch(0.72 0.02 260);
+  --accent: oklch(0.3 0.03 260);
+  --accent-foreground: oklch(0.95 0.01 260);
+  --destructive: oklch(0.65 0.18 25);
+  --destructive-foreground: oklch(0.12 0.02 25);
+  --success: oklch(0.7 0.14 150);
+  --success-foreground: oklch(0.12 0.02 150);
+  --warning: oklch(0.78 0.14 70);
+  --warning-foreground: oklch(0.15 0.02 70);
+  --border: oklch(0.3 0.02 260);
+  --input: oklch(0.3 0.02 260);
+  --ring: oklch(0.75 0.13 260);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    min-height: 100dvh;
+  }
+}
+
+/* Tokens the theme engine writes (defaults = the built-in look). */
+:root {
+  --primary-hover: oklch(0.43 0.17 260);
+  --link: var(--primary);
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-active: var(--accent);
+  --sidebar-active-foreground: var(--accent-foreground);
+  --topbar-background: var(--background);
+  --topbar-foreground: var(--foreground);
+}
+.dark {
+  --primary-hover: oklch(0.8 0.12 260);
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-active: var(--accent);
+  --sidebar-active-foreground: var(--accent-foreground);
+  --topbar-background: var(--background);
+  --topbar-foreground: var(--foreground);
+}
+@theme inline {
+  --color-primary-hover: var(--primary-hover);
+  --color-link: var(--link);
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
+  --color-topbar: var(--topbar-background);
+  --color-topbar-foreground: var(--topbar-foreground);
+}
+
+/* Density and corners chosen in Settings -> Appearance, as attributes on <html>. */
+html[data-density='compact'] {
+  --row-padding: 0.375rem;
+}
+html[data-density='comfortable'] {
+  --row-padding: 0.75rem;
+}

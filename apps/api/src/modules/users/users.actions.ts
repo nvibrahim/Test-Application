@@ -1,0 +1,15 @@
+export const UserActions = {
+  invited: 'users.user.invited',
+  invitationResent: 'users.invitation.resent',
+  invitationAccepted: 'users.invitation.accepted',
+  updated: 'users.user.updated',
+  rolesChanged: 'users.role.changed',
+  locationsChanged: 'users.locations.changed',
+  disabled: 'users.user.disabled',
+  enabled: 'users.user.enabled',
+  anonymised: 'users.user.anonymised',
+  superAdminGranted: 'users.superadmin.granted',
+  superAdminRemoved: 'users.superadmin.removed',
+  emailChangeRequested: 'users.email.change_requested',
+  emailChanged: 'users.email.changed',
+} as const;
