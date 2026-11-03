@@ -1,12 +1,16 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from './a11y';
+import {
+  OWNER_EMAIL,
+  OWNER_FIRST_PASSWORD,
+  OWNER_NAME,
+  OWNER_TEMP_PASSWORD,
+  ownerPassword,
+  rememberOwnerPassword,
+} from './owner';
 
-const OWNER = {
-  email: 'owner@example.test',
-  name: 'Olive Owner',
-  tempPassword: 'temporary-walrus-lantern-42',
-};
-const PASSWORD = 'orbit-meadow-copper-sixteen-91';
+const OWNER = { email: OWNER_EMAIL, name: OWNER_NAME, tempPassword: OWNER_TEMP_PASSWORD };
+const PASSWORD = OWNER_FIRST_PASSWORD;
 const RESET_PASSWORD = 'velvet-harbour-quartz-lemon-77';
 
 test.describe.configure({ mode: 'serial' });
@@ -131,4 +135,6 @@ test('a forgotten password is reset from the emailed link and the old password s
   await expect(alert(page)).toContainText('Wrong email or password');
   await signIn(page, RESET_PASSWORD);
   await expect(page).toHaveURL(/\/dashboard$/);
+  // every later journey signs in with the new password
+  rememberOwnerPassword(RESET_PASSWORD);
 });

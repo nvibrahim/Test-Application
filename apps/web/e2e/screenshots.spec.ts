@@ -6,7 +6,14 @@ import { test, type Page } from '@playwright/test';
  * Pictures of the main screens at this width, for the docs. Runs after auth.spec.ts (files run
  * in order), when the owner has set up the organization. Output: SCREENSHOT_DIR or test-results/screens.
  */
-const OWNER = { email: 'owner@example.test', password: 'orbit-meadow-copper-sixteen-91' };
+import { OWNER_EMAIL, ownerPassword } from './owner';
+
+const OWNER = {
+  email: OWNER_EMAIL,
+  get password() {
+    return ownerPassword();
+  },
+};
 const dir = process.env['SCREENSHOT_DIR'] ?? path.resolve(__dirname, '../test-results/screens');
 
 async function shot(page: Page, name: string, project: string) {
