@@ -1,0 +1,15 @@
+export const BackupActions = {
+  started: 'backups.backup.started',
+  completed: 'backups.backup.completed',
+  failed: 'backups.backup.failed',
+  downloaded: 'backups.backup.downloaded',
+  verified: 'backups.backup.verified',
+  pruned: 'backups.backup.pruned',
+  drillPassed: 'backups.drill.passed',
+  drillFailed: 'backups.drill.failed',
+  restoreScheduled: 'backups.restore.scheduled',
+  restoreCompleted: 'backups.restore.completed',
+  restoreFailed: 'backups.restore.failed',
+  targetCreated: 'backups.target.created',
+  targetDeleted: 'backups.target.deleted',
+} as const;
