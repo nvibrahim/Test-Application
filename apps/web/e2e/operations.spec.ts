@@ -1,7 +1,14 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from './a11y';
 
-const OWNER = { email: 'owner@example.test', password: 'orbit-meadow-copper-sixteen-91' };
+import { OWNER_EMAIL, ownerPassword } from './owner';
+
+const OWNER = {
+  email: OWNER_EMAIL,
+  get password() {
+    return ownerPassword();
+  },
+};
 
 async function signIn(page: Page) {
   await page.goto('/sign-in');

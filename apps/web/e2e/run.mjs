@@ -2,6 +2,7 @@
 // `pnpm test:e2e`: reset the e2e database (Playwright starts its servers before any global
 // setup, so this has to run first), then hand every argument to Playwright.
 import { spawnSync } from 'node:child_process';
+import { rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,6 +20,9 @@ const env = {
     process.env['BACKUP_ENCRYPTION_KEY'] ?? Buffer.alloc(32, 0xe3).toString('base64'),
   WEB_ORIGIN: 'http://localhost:3000',
 };
+
+// The owner's password state from the previous run goes with the database.
+rmSync(path.resolve(here, '..', '.e2e-state'), { recursive: true, force: true });
 
 const reset = spawnSync('pnpm', ['exec', 'tsx', 'scripts/e2e-reset.ts'], {
   cwd: api,

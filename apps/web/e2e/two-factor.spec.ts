@@ -4,11 +4,17 @@ import { expectAccessible } from './a11y';
 
 /**
  * Runs after auth.spec.ts (files run in order, one worker): the owner has set up the
- * organization and uses PASSWORD. Each project runs the whole journey against a fresh state,
+ * organization and uses the current owner password. Each project runs the whole journey against a fresh state,
  * because the last step turns two-step verification off again.
  */
-const OWNER = { email: 'owner@example.test' };
-const PASSWORD = 'orbit-meadow-copper-sixteen-91';
+import { OWNER_EMAIL, ownerPassword } from './owner';
+
+const OWNER = {
+  email: OWNER_EMAIL,
+  get password() {
+    return ownerPassword();
+  },
+};
 
 test.describe.configure({ mode: 'serial' });
 
@@ -17,7 +23,7 @@ const alert = (page: Page) => page.locator('[role="alert"]:not(#__next-route-ann
 async function signIn(page: Page) {
   await page.goto('/sign-in');
   await page.getByLabel('Email').fill(OWNER.email);
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
+  await page.getByLabel('Password', { exact: true }).fill(OWNER.password);
   await page.getByRole('button', { name: 'Sign in' }).click();
 }
 
@@ -84,7 +90,7 @@ test('the owner turns on two-step verification, signs in with a code, trusts the
   const other = await fresh.newPage();
   await other.goto('/sign-in');
   await other.getByLabel('Email').fill(OWNER.email);
-  await other.getByLabel('Password', { exact: true }).fill(PASSWORD);
+  await other.getByLabel('Password', { exact: true }).fill(OWNER.password);
   await other.getByRole('button', { name: 'Sign in' }).click();
   await expect(other).toHaveURL(/\/two-factor$/);
   await other.getByRole('button', { name: /Use a recovery code/ }).click();
@@ -104,7 +110,7 @@ test('the owner turns on two-step verification, signs in with a code, trusts the
   await stepUp.getByLabel('Password').fill('wrong-password-here');
   await stepUp.getByRole('button', { name: 'Continue' }).click();
   await expect(stepUp.locator('[role="alert"]')).toContainText('wrong');
-  await stepUp.getByLabel('Password').fill(PASSWORD);
+  await stepUp.getByLabel('Password').fill(OWNER.password);
   await stepUp.getByRole('button', { name: 'Continue' }).click();
   await expect(page.getByText('Two-step verification is off.')).toBeVisible();
   await expect(alert(page)).toContainText('off');

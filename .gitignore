@@ -16,3 +16,4 @@ next-env.d.ts
 /backups/
 /apps/api/backups/
 /apps/api/backups-e2e/
+/apps/web/.e2e-state/

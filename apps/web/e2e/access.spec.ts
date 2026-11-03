@@ -2,7 +2,14 @@ import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from './a11y';
 
 /** Runs after auth and two-factor specs: the owner is set up and two-step is off again. */
-const OWNER = { email: 'owner@example.test', password: 'orbit-meadow-copper-sixteen-91' };
+import { OWNER_EMAIL, ownerPassword } from './owner';
+
+const OWNER = {
+  email: OWNER_EMAIL,
+  get password() {
+    return ownerPassword();
+  },
+};
 const TEAMMATE = {
   email: 'sam.rivera@example.test',
   name: 'Sam Rivera',
