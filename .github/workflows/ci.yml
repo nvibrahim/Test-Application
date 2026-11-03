@@ -58,7 +58,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: checks
-    if: ${{ hashFiles('apps/web/e2e/**/*.spec.ts') != '' }}
     services:
       postgres:
         image: postgres:17-alpine
