@@ -1,6 +1,7 @@
 # One organization's stack in production. Started per client as:
 #   docker compose -p inspower-<slug> --env-file clients/<slug>/.env -f docker-compose.prod.yml up -d
-# The image is the same for every client; only .env differs. Caddy (infra/caddy) sits in front.
+# The image is the same for every client; only .env differs. A reverse proxy sits in front:
+# Caddy (infra/caddy) on a server of its own, or the host's nginx (infra/nginx) on a shared one.
 name: inspower-${CLIENT_SLUG}
 
 x-app: &app
@@ -58,6 +59,9 @@ services:
     <<: *app
     command: ['api']
     networks: [internal, outbound, edge]
+    # Published on this server only, for the host's reverse proxy (nginx) and the release
+    # health check. Each client on the server needs its own pair of ports.
+    ports: ['127.0.0.1:${API_HOST_PORT:-4000}:4000']
     depends_on: { postgres: { condition: service_healthy }, valkey: { condition: service_started } }
     healthcheck:
       test:
@@ -83,6 +87,7 @@ services:
     <<: *app
     command: ['web']
     networks: [internal, edge]
+    ports: ['127.0.0.1:${WEB_HOST_PORT:-3000}:3000']
     depends_on: [api]
 
 volumes:

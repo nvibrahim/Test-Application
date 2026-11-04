@@ -3,6 +3,7 @@ import path from 'node:path';
 import {
   clientEnvFile,
   listClients,
+  nextHostPorts,
   nextVersion,
   planHold,
   planNewClient,
@@ -99,11 +100,21 @@ export async function clientCommand(args: string[]): Promise<number> {
     case 'new': {
       const slug = flags._[0];
       if (!slug || !/^[a-z][a-z0-9-]{1,30}$/.test(slug)) {
-        console.error('Usage: inspower client new <slug> --version <v> [--domain host]');
+        console.error(
+          'Usage: inspower client new <slug> --version <v> [--domain host] [--web-port n --api-port n]',
+        );
         return 2;
       }
       const file = clientEnvFile(root, slug);
       const existing = readEnvFile(file);
+      const ports =
+        existing['WEB_HOST_PORT'] && existing['API_HOST_PORT']
+          ? { web: existing['WEB_HOST_PORT'], api: existing['API_HOST_PORT'] }
+          : nextHostPorts(
+              listClients(root)
+                .filter((s) => s !== slug)
+                .map((s) => readEnvFile(clientEnvFile(root, s))),
+            );
       const gen = (n: number) => require('node:crypto').randomBytes(n).toString('base64url');
       const values: Record<string, string> = {
         CLIENT_SLUG: slug,
@@ -112,6 +123,8 @@ export async function clientCommand(args: string[]): Promise<number> {
         WEB_ORIGIN: flags.opts['domain']
           ? `https://${flags.opts['domain']}`
           : (existing['WEB_ORIGIN'] ?? 'https://change-me.example'),
+        WEB_HOST_PORT: flags.opts['web-port'] ?? ports.web,
+        API_HOST_PORT: flags.opts['api-port'] ?? ports.api,
         POSTGRES_PASSWORD: existing['POSTGRES_PASSWORD'] ?? gen(24),
         REDIS_PASSWORD: existing['REDIS_PASSWORD'] ?? gen(24),
         AUTH_ENCRYPTION_KEY:
@@ -136,7 +149,7 @@ export async function clientCommand(args: string[]): Promise<number> {
       );
       if (!result.ok) return 1;
       console.log(
-        `\nNow create the owner: docker compose -p inspower-${slug} --env-file ${file} -f infra/compose/docker-compose.prod.yml run --rm api cli admin create`,
+        `\nLocal ports: web 127.0.0.1:${values['WEB_HOST_PORT']}, API 127.0.0.1:${values['API_HOST_PORT']} (use them in the nginx site).\nNow create the owner: docker compose -p inspower-${slug} --env-file ${file} -f infra/compose/docker-compose.prod.yml run --rm api cli admin create`,
       );
       return 0;
     }

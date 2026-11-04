@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { composeArgs, nextVersion, planRelease, versionPattern } from './compose';
+import { composeArgs, nextHostPorts, nextVersion, planRelease, versionPattern } from './compose';
 import { orderDemoFirst } from './release';
 
 const client = {
@@ -45,5 +45,15 @@ describe('release planning', () => {
 
   it('releases the demo client first', () => {
     expect(orderDemoFirst(['acme', 'demo', 'bravo'])).toEqual(['demo', 'acme', 'bravo']);
+  });
+
+  it('gives each client on a server its own pair of local ports', () => {
+    expect(nextHostPorts([])).toEqual({ web: '3101', api: '4101' });
+    expect(
+      nextHostPorts([
+        { WEB_HOST_PORT: '3101', API_HOST_PORT: '4101' },
+        { WEB_HOST_PORT: '3103', API_HOST_PORT: '4102' },
+      ]),
+    ).toEqual({ web: '3104', api: '4104' });
   });
 });

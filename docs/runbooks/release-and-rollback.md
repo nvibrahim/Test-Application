@@ -86,7 +86,7 @@ three roles and checks health. Then create the owner:
 docker compose -p inspower-<slug> --env-file clients/<slug>/.env -f infra/compose/docker-compose.prod.yml run --rm api cli admin create
 ```
 
-Add the host to Caddy (`infra/caddy/Caddyfile`) and reload it.
+Add the host to Caddy (`infra/caddy/Caddyfile`) and reload it. On a server that already runs nginx, use `infra/nginx/inspower-site.conf` instead; see `deploy-to-shared-vps.md`.
 
 ## Rehearsal log
 

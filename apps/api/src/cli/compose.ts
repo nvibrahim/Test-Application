@@ -116,10 +116,24 @@ export function planStatus(c: ClientSpec): Step[] {
   ];
 }
 
-/** The port the client's API is published on for health checks: `HEALTH_PORT` in its .env, else none. */
+/** The port the client's API is published on (127.0.0.1 only): `API_HOST_PORT` in its .env. */
 export function healthPort(c: ClientSpec): string {
   const env = readEnvFile(clientEnvFile(c.root, c.slug));
-  return env['HEALTH_PORT'] ?? '4000';
+  return env['API_HOST_PORT'] ?? env['HEALTH_PORT'] ?? '4000';
+}
+
+/**
+ * The next free pair of local ports for a new client, so several clients share one server:
+ * web 3101, 3102, ... and API 4101, 4102, ... skipping any pair another client already uses.
+ */
+export function nextHostPorts(used: Array<Record<string, string>>): { web: string; api: string } {
+  const taken = new Set(used.flatMap((e) => [e['WEB_HOST_PORT'], e['API_HOST_PORT']]));
+  for (let n = 101; n < 1000; n += 1) {
+    const web = String(3000 + n);
+    const api = String(4000 + n);
+    if (!taken.has(web) && !taken.has(api)) return { web, api };
+  }
+  throw new Error('No free port pair between 3101 and 4999.');
 }
 
 export function readEnvFile(file: string): Record<string, string> {
