@@ -8,7 +8,7 @@ x-app: &app
   image: ${IMAGE:-inspower}:${VERSION:-latest}
   restart: unless-stopped
   env_file: ${CLIENT_ENV_FILE:-.env}
-  environment:
+  environment: &app-env
     NODE_ENV: production
     TZ: UTC
     API_HOST: 0.0.0.0
@@ -78,7 +78,9 @@ services:
     <<: *app
     command: ['worker']
     volumes: [backups:/backups, storage:/storage]
+    # A service's own environment replaces the shared one, so merge it back in.
     environment:
+      <<: *app-env
       STORAGE_DIR: /storage
       BACKUP_DIR: /backups
     depends_on: { postgres: { condition: service_healthy }, valkey: { condition: service_started } }

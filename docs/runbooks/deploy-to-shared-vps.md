@@ -16,7 +16,8 @@ The worked example is the test site: client `test`, domain `test.inspowerdatahub
   docker login ghcr.io -u <github-user>
   ```
 
-- Clone this repository, for example to `/srv/inspower-core`, and run `pnpm install`.
+- Clone this repository, for example to `/srv/inspower-core`, and run `pnpm install`. Then build what
+  the command line needs: `pnpm db:generate` and `pnpm --filter @inspower/shared build`.
   Client files live in `/srv/inspower-core/clients/<slug>/.env` (never commit them).
 
 ## 1. DNS
@@ -64,8 +65,11 @@ If the `map $http_upgrade` block already exists in another site, delete it from 
 ## 4. First Super Admin
 
 ```bash
-docker compose -p inspower-test --env-file clients/test/.env -f infra/compose/docker-compose.prod.yml run --rm api cli admin create
+CLIENT_ENV_FILE=/srv/inspower-core/clients/test/.env docker compose -p inspower-test --env-file clients/test/.env -f infra/compose/docker-compose.prod.yml run --rm api cli admin create
 ```
+
+Run it from `/srv/inspower-core`. `CLIENT_ENV_FILE` tells compose where the client file is; without
+it compose looks for `infra/compose/.env` and stops.
 
 Then open https://test.inspowerdatahub.com, sign in, and finish the setup wizard.
 
@@ -81,7 +85,7 @@ See `release-and-rollback.md` for rollback and holding a client.
 ## Removing the test site
 
 ```bash
-docker compose -p inspower-test --env-file clients/test/.env -f infra/compose/docker-compose.prod.yml down
+CLIENT_ENV_FILE=/srv/inspower-core/clients/test/.env docker compose -p inspower-test --env-file clients/test/.env -f infra/compose/docker-compose.prod.yml down
 ```
 
 This keeps the data volumes. Remove the nginx site and reload nginx. Delete the volumes
