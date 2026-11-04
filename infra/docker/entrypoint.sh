@@ -8,7 +8,7 @@ case "$role" in
   api)     cd /app/api && exec node dist/main.js ;;
   worker)  cd /app/api && exec node dist/worker/main.js ;;
   web)     cd /app/web && exec node apps/web/server.js ;;
-  migrate) cd /app/api && exec node_modules/.bin/prisma migrate deploy ;;
+  migrate) cd /app/api && node_modules/.bin/prisma migrate deploy && exec node dist/cli/main.js db seed ;;
   cli)     cd /app/api && exec node dist/cli/main.js "$@" ;;
   *)       echo "Unknown role '$role'. Use web, api, worker, migrate or cli." >&2; exit 2 ;;
 esac

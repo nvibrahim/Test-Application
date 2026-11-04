@@ -141,8 +141,18 @@ jobs:
         run: |
           docker run --rm inspower:${{ steps.version.outputs.value }} cli version
           docker run --rm --entrypoint sh inspower:${{ steps.version.outputs.value }} -c 'ls /app/api/dist/main.js /app/api/dist/worker/main.js /app/web/apps/web/server.js'
-      - name: Run the migrate role against PostgreSQL
-        run: >-
-          docker run --rm --network host
-          -e DATABASE_URL="postgresql://inspower:inspower@127.0.0.1:5432/inspower?schema=public"
-          inspower:${{ steps.version.outputs.value }} migrate
+      - name: Run the migrate role against PostgreSQL, twice (it must be repeatable)
+        env:
+          DATABASE_URL: postgresql://inspower:inspower@127.0.0.1:5432/inspower?schema=public
+        run: |
+          for run in 1 2; do
+            docker run --rm --network host -e DATABASE_URL inspower:${{ steps.version.outputs.value }} migrate
+          done
+      - name: Check the migrate role loaded the countries and currencies
+        run: |
+          count() {
+            docker run --rm --network host -e PGPASSWORD=inspower postgres:17-alpine psql -h 127.0.0.1 -U inspower -d inspower -Atc "select count(*) from $1"
+          }
+          countries=$(count countries) currencies=$(count currencies)
+          echo "countries=$countries currencies=$currencies"
+          test "$countries" -gt 200 && test "$currencies" -gt 100
