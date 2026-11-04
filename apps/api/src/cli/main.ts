@@ -73,7 +73,9 @@ async function main(argv: string[]): Promise<number> {
   return command(rest);
 }
 
-main(process.argv.slice(2))
+// `pnpm inspower <command>` reaches this file with a literal `--` in front of the arguments.
+const cliArgs = process.argv.slice(2);
+main(cliArgs[0] === '--' ? cliArgs.slice(1) : cliArgs)
   .then((code) => process.exit(code))
   .catch((error: unknown) => {
     console.error(error instanceof InvalidEnvironmentError ? error.message : error);
