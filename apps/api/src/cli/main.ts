@@ -3,6 +3,7 @@ import { loadDotEnv } from '../platform/config/dotenv';
 loadDotEnv();
 import { loadEnv, InvalidEnvironmentError } from '../platform/config/config';
 import { createPrismaClient } from '../platform/database/prisma.service';
+import { seedReferenceData } from '../platform/database/reference-seed';
 import { adminCommand } from './admin';
 import { backupCommand } from './backup';
 import { keysCommand } from './keys';
@@ -11,7 +12,7 @@ import { maintenanceCommand } from './maintenance';
 
 /**
  * `pnpm inspower <command>`: the cross-platform command line that replaces scripts.
- * Commands: `version`, `db check`, `keys generate|rotate`, `admin create|recover`,
+ * Commands: `version`, `db check|seed`, `keys generate|rotate`, `admin create|recover`,
  * `backup run|list|verify|prune|restore`, `maintenance on|off`, `release`, `client`.
  */
 const commands: Record<string, (args: string[]) => Promise<number>> = {
@@ -45,8 +46,26 @@ const commands: Record<string, (args: string[]) => Promise<number>> = {
   },
 
   async db(args) {
+    if (args[0] === 'seed') {
+      // Needs only DATABASE_URL, like `prisma migrate deploy`, so the migrate role can run it.
+      const url = process.env['DATABASE_URL'];
+      if (!url) {
+        console.error('DATABASE_URL is not set');
+        return 1;
+      }
+      const prisma = createPrismaClient(url);
+      try {
+        const seeded = await seedReferenceData(prisma);
+        console.log(
+          `Reference data: ${seeded.currencies} currencies, ${seeded.countries} countries`,
+        );
+        return 0;
+      } finally {
+        await prisma.$disconnect();
+      }
+    }
     if (args[0] !== 'check') {
-      console.error('Usage: inspower db check');
+      console.error('Usage: inspower db check|seed');
       return 2;
     }
     const env = loadEnv();
